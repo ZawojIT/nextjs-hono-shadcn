@@ -1,4 +1,4 @@
-import Example from "@/components/blocks/example";
+import Example from "@/components/templates/example";
 
 export default function Home() {
   return (
