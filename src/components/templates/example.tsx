@@ -3,6 +3,7 @@
 import React from 'react'
 import { Button } from '../elements/button'
 import { useHello } from '@/hooks/example/example'
+import { redirect } from 'next/navigation'
 
 const Example = () => {
   const { data, isLoading, error } = useHello()
@@ -18,7 +19,7 @@ const Example = () => {
           <p className="mb-4">{data.message}</p>
           <Button 
             className="mt-4"
-            onClick={() => alert('Hello!')}
+            onClick={() => redirect('/users')}
           >
             Kliknij mnie!
           </Button>
