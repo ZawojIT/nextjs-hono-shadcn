@@ -6,7 +6,7 @@
 |   |       ├── ui/
 |   |       └── lib/
 |   |
-│   ├── elements/                    # Base UI components (atoms) including shadcn
+│   ├── elements/             # Base UI components (atoms) including shadcn
 │   │   ├── action-menu.tsx
 │   │   ├── drawer.tsx
 │   │   ├── sheet.tsx
