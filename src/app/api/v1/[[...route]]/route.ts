@@ -2,14 +2,20 @@ import { Hono } from 'hono'
 import { handle } from 'hono/vercel'
 import { zValidator } from '@hono/zod-validator'
 import { userFormSchema } from '@/hooks/users/schema'
+import { payload } from './payload'
+export const runtime = 'nodejs'
 
-export const runtime = 'edge'
+const app = new Hono().basePath('/api/v1')
 
-const app = new Hono().basePath('/api')
+app.get('/hello', async (c) => {
+  
+  const users = await payload.find({
+    collection: 'users',
+  })
 
-app.get('/hello', (c) => {
   return c.json({
     message: 'Hello Next.js!',
+    users,
   })
 })
 
