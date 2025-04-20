@@ -1,0 +1,3278 @@
+TITLE: Defining Primitive Types with Zod
+DESCRIPTION: Examples of creating schemas for various primitive types, empty types, and special types like any, unknown, and never.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_5
+
+LANGUAGE: typescript
+CODE:
+```
+import { z } from "zod";
+
+// primitive values
+z.string();
+z.number();
+z.bigint();
+z.boolean();
+z.date();
+z.symbol();
+
+// empty types
+z.undefined();
+z.null();
+z.void(); // accepts undefined
+
+// catch-all types
+// allows any value
+z.any();
+z.unknown();
+
+// never type
+// allows no values
+z.never();
+```
+
+----------------------------------------
+
+TITLE: Using Type Coercion in Zod
+DESCRIPTION: Examples of coercing values to strings and other primitive types in Zod, showing how the coercion process works for different input types.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_6
+
+LANGUAGE: typescript
+CODE:
+```
+const schema = z.coerce.string();
+schema.parse("tuna"); // => "tuna"
+schema.parse(12); // => "12"
+```
+
+----------------------------------------
+
+TITLE: Handling Validation Errors in Zod with Try-Catch in TypeScript
+DESCRIPTION: Demonstrates passing malformed data to a Zod schema and catching the resulting ZodError. The example includes various validation failures like incorrect types, unrecognized keys, and values below minimums.
+SOURCE: https://github.com/colinhacks/zod/blob/main/ERROR_HANDLING.md#2025-04-18_snippet_3
+
+LANGUAGE: typescript
+CODE:
+```
+try {
+  person.parse({
+    names: ["Dave", 12], // 12 is not a string
+    address: {
+      line1: "123 Maple Ave",
+      zipCode: 123, // zip code isn't 5 digits
+      extra: "other stuff", // unrecognized key
+    },
+  });
+} catch (err) {
+  if (err instanceof z.ZodError) {
+    console.log(err.issues);
+  }
+}
+```
+
+----------------------------------------
+
+TITLE: Type Inference in Zod
+DESCRIPTION: You can extract the TypeScript type from any Zod schema using z.infer<typeof schema>. This allows for type-safe usage of the validated data.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_113
+
+LANGUAGE: typescript
+CODE:
+```
+const A = z.string();
+type A = z.infer<typeof A>; // string
+
+const u: A = 12; // TypeError
+const u: A = "asdf"; // compiles
+```
+
+----------------------------------------
+
+TITLE: Defining Object Schemas in TypeScript with Zod
+DESCRIPTION: Shows how to create object schemas using z.object() and how to infer TypeScript types from them. All properties are required by default.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_52
+
+LANGUAGE: typescript
+CODE:
+```
+// all properties are required by default
+const Dog = z.object({
+  name: z.string(),
+  age: z.number(),
+});
+
+// extract the inferred type like this
+type Dog = z.infer<typeof Dog>;
+
+// equivalent to:
+type Dog = {
+  name: string;
+  age: number;
+};
+```
+
+----------------------------------------
+
+TITLE: Form Validation Schema with Zod in TypeScript
+DESCRIPTION: Defines a Zod schema for a web form with name and contact information fields. The schema includes validation rules like requiring strings and validating email formats.
+SOURCE: https://github.com/colinhacks/zod/blob/main/ERROR_HANDLING.md#2025-04-18_snippet_10
+
+LANGUAGE: typescript
+CODE:
+```
+const FormData = z.object({
+  name: z.string(),
+  contactInfo: z.object({
+    email: z.string().email(),
+    phone: z.string().optional(),
+  }),
+});
+```
+
+----------------------------------------
+
+TITLE: String Validation Methods in Zod
+DESCRIPTION: Comprehensive list of string validation methods available in Zod, including length constraints, format validation, and string manipulation.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_12
+
+LANGUAGE: typescript
+CODE:
+```
+// 유효성 검사
+z.string().max(5); // 최대 5자
+z.string().min(5); // 최소 5자
+z.string().length(5); // 정확히 5자
+z.string().email(); // 이메일 형식
+z.string().url(); // URL 형식
+z.string().emoji(); // 이모지 포함
+z.string().uuid(); // UUID 형식
+z.string().nanoid(); // Nano ID 형식
+z.string().cuid(); // CUID 형식
+z.string().cuid2(); // CUID2 형식
+z.string().ulid(); // ULID 형식
+z.string().regex(regex); // 정규식 검사
+z.string().includes(string); // 특정 문자열 포함
+z.string().startsWith(string); // 특정 문자열로 시작
+z.string().endsWith(string); // 특정 문자열로 끝남
+z.string().datetime(); // ISO 8601 형식 (기본적으로 'Z' 시간대만 허용)
+z.string().ip(); // IPv4 및 IPv6 허용 (기본값)
+z.string().cidr(); // IPv4 및 IPv6 CIDR 허용 (기본값)
+
+// 변환
+z.string().trim(); // 공백 제거
+z.string().toLowerCase(); // 소문자로 변환
+z.string().toUpperCase(); // 대문자로 변환
+
+// Zod 3.23에서 추가됨
+z.string().date(); // ISO 날짜 형식 (YYYY-MM-DD)
+z.string().time(); // ISO 시간 형식 (HH:mm:ss[.SSSSSS])
+z.string().duration(); // ISO 8601 기간 형식
+z.string().base64(); // Base64 형식
+```
+
+----------------------------------------
+
+TITLE: Error Handling in Zod
+DESCRIPTION: Zod provides a ZodError class with an issues array containing detailed information about validation problems. This can be accessed when using safeParse.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_120
+
+LANGUAGE: typescript
+CODE:
+```
+const result = z
+  .object({
+    name: z.string(),
+  })
+  .safeParse({ name: 12 });
+
+if (!result.success) {
+  result.error.issues;
+  /* [
+      {
+        "code": "invalid_type",
+        "expected": "string",
+        "received": "number",
+        "path": [ "name" ],
+        "message": "Expected string, received number"
+      }
+  ] */
+}
+```
+
+----------------------------------------
+
+TITLE: String Validation and Transformation Methods in Zod
+DESCRIPTION: A comprehensive list of string validation methods including length constraints, format validations (email, URL, UUID), and string transformation methods like trim and case conversion.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_12
+
+LANGUAGE: typescript
+CODE:
+```
+// validations
+z.string().max(5);
+z.string().min(5);
+z.string().length(5);
+z.string().email();
+z.string().url();
+z.string().emoji();
+z.string().uuid();
+z.string().nanoid();
+z.string().cuid();
+z.string().cuid2();
+z.string().ulid();
+z.string().regex(regex);
+z.string().includes(string);
+z.string().startsWith(string);
+z.string().endsWith(string);
+z.string().datetime(); // ISO 8601; by default only `Z` timezone allowed
+z.string().ip(); // defaults to allow both IPv4 and IPv6
+z.string().cidr(); // defaults to allow both IPv4 and IPv6
+
+// transforms
+z.string().trim(); // trim whitespace
+z.string().toLowerCase(); // toLowerCase
+z.string().toUpperCase(); // toUpperCase
+
+// added in Zod 3.23
+z.string().date(); // ISO date format (YYYY-MM-DD)
+z.string().time(); // ISO time format (HH:mm:ss[.SSSSSS])
+z.string().duration(); // ISO 8601 duration
+z.string().base64();
+```
+
+----------------------------------------
+
+TITLE: Creating Object Schema with Type Inference in Zod
+DESCRIPTION: Example of creating an object schema with Zod and extracting the inferred TypeScript type from it.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_3
+
+LANGUAGE: typescript
+CODE:
+```
+import { z } from "zod";
+
+const User = z.object({
+  username: z.string(),
+});
+
+User.parse({ username: "Ludwig" });
+
+// extract the inferred type
+type User = z.infer<typeof User>;
+// { username: string }
+```
+
+----------------------------------------
+
+TITLE: Displaying Zod Validation Errors in React Forms
+DESCRIPTION: Demonstrates using formatted Zod errors in a React form component. The example shows how to display field-specific error messages alongside form inputs.
+SOURCE: https://github.com/colinhacks/zod/blob/main/ERROR_HANDLING.md#2025-04-18_snippet_14
+
+LANGUAGE: typescript
+CODE:
+```
+const FormData = z.object({ ... });
+
+function Errors(props: {errors?: string[]}){  
+  if(!props.errors?.length) return null;
+  return <div>{props.errors.map(err => <p>{err}</p>)}</div>
+}
+
+function MyForm(){
+  const {register, data} = useForm({ ... });
+
+  const result = FormData.safeParse(data);
+  const errors = result.success ? {} : result.error.format();
+
+  return <div>
+    <label>Name<label>
+    <input {...register('name')}>
+    <Errors errors={errors?.name?._errors} />
+  </div>
+}
+```
+
+----------------------------------------
+
+TITLE: Discriminated Union Schema
+DESCRIPTION: Shows how to create and use discriminated unions for more efficient type validation.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_78
+
+LANGUAGE: typescript
+CODE:
+```
+const myUnion = z.discriminatedUnion("status", [
+  z.object({ status: z.literal("success"), data: z.string() }),
+  z.object({ status: z.literal("failed"), error: z.instanceof(Error) }),
+]);
+
+myUnion.parse({ status: "success", data: "yippie ki yay" });
+```
+
+----------------------------------------
+
+TITLE: Safely Parsing Form Data with Zod in TypeScript
+DESCRIPTION: Shows how to use safeParse to validate form data without throwing exceptions. The result contains either the validated data or structured error information.
+SOURCE: https://github.com/colinhacks/zod/blob/main/ERROR_HANDLING.md#2025-04-18_snippet_11
+
+LANGUAGE: typescript
+CODE:
+```
+const result = FormData.safeParse({
+  name: null,
+  contactInfo: {
+    email: "not an email",
+    phone: "867-5309",
+  },
+});
+```
+
+----------------------------------------
+
+TITLE: Using Refinements for Custom Validation in Zod
+DESCRIPTION: Example of using .refine() to add custom validation logic to any Zod schema. This method allows for complex validation rules beyond simple type checking, with customizable error messages and paths.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_42
+
+LANGUAGE: typescript
+CODE:
+```
+const myString = z.string().refine((val) => val.length <= 255, {
+  message: "문자열은 255자를 초과할 수 없습니다.",
+});
+```
+
+----------------------------------------
+
+TITLE: Creating Basic String Schema with Zod
+DESCRIPTION: Example showing how to create a simple string schema, perform parsing, and handle validation errors safely.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_2
+
+LANGUAGE: typescript
+CODE:
+```
+import { z } from "zod";
+
+// creating a schema for strings
+const mySchema = z.string();
+
+// parsing
+mySchema.parse("tuna"); // => "tuna"
+mySchema.parse(12); // => throws ZodError
+
+// "safe" parsing (doesn't throw error if validation fails)
+mySchema.safeParse("tuna"); // => { success: true; data: "tuna" }
+mySchema.safeParse(12); // => { success: false; error: ZodError }
+```
+
+----------------------------------------
+
+TITLE: Email Domain Extraction Transform
+DESCRIPTION: Demonstrates chaining validation and transformation to extract domain from email address.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_98
+
+LANGUAGE: typescript
+CODE:
+```
+const emailToDomain = z
+  .string()
+  .email()
+  .transform((val) => val.split("@")[1]);
+
+emailToDomain.parse("colinhacks@example.com"); // => example.com
+```
+
+----------------------------------------
+
+TITLE: Creating Union Types with Zod
+DESCRIPTION: Shows how to create union types using both the z.union method and the .or method, allowing validation against multiple possible schema types.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_5
+
+LANGUAGE: typescript
+CODE:
+```
+const stringOrNumber = z.union([z.string(), z.number()]);
+
+stringOrNumber.parse("foo"); // 通过
+stringOrNumber.parse(14); // 通过
+```
+
+----------------------------------------
+
+TITLE: Creating Function Schemas in Zod
+DESCRIPTION: Example of creating strongly typed function schemas with argument and return type validation. Function schemas can automatically validate inputs and outputs while maintaining proper TypeScript types.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_39
+
+LANGUAGE: typescript
+CODE:
+```
+const myFunction = z
+  .function()
+  .args(z.string(), z.number()) // 임의의 수의 인자를 받음
+  .returns(z.boolean());
+
+type myFunction = z.infer<typeof myFunction>;
+// => (arg0: string, arg1: number)=>boolean
+```
+
+----------------------------------------
+
+TITLE: Customizing String Validation Error Messages in Zod
+DESCRIPTION: Demonstrates how to provide custom error messages for string validation methods like min, max, email, and others.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_14
+
+LANGUAGE: typescript
+CODE:
+```
+z.string().min(5, { message: "Must be 5 or more characters long" });
+z.string().max(5, { message: "Must be 5 or fewer characters long" });
+z.string().length(5, { message: "Must be exactly 5 characters long" });
+z.string().email({ message: "Invalid email address" });
+z.string().url({ message: "Invalid url" });
+z.string().emoji({ message: "Contains non-emoji characters" });
+z.string().uuid({ message: "Invalid UUID" });
+z.string().includes("tuna", { message: "Must include tuna" });
+z.string().startsWith("https://", { message: "Must provide secure URL" });
+z.string().endsWith(".com", { message: "Only .com domains allowed" });
+z.string().datetime({ message: "Invalid datetime string! Must be UTC." });
+z.string().date({ message: "Invalid date string!" });
+z.string().time({ message: "Invalid time string!" });
+z.string().ip({ message: "Invalid IP address" });
+z.string().cidr({ message: "Invalid CIDR" });
+```
+
+----------------------------------------
+
+TITLE: Creating a JSON Type Validator in TypeScript with Zod
+DESCRIPTION: Illustrates how to create a Zod schema for validating any JSON value. It uses z.union() and z.lazy() to create a recursive schema that can handle nested JSON structures.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_85
+
+LANGUAGE: typescript
+CODE:
+```
+const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
+type Literal = z.infer<typeof literalSchema>;
+type Json = Literal | { [key: string]: Json } | Json[];
+const jsonSchema: z.ZodType<Json> = z.lazy(() =>
+  z.union([literalSchema, z.array(jsonSchema), z.record(jsonSchema)])
+);
+
+jsonSchema.parse(data);
+```
+
+----------------------------------------
+
+TITLE: Creating Custom Zod Schemas in TypeScript
+DESCRIPTION: Demonstrates how to create custom Zod schemas for TypeScript types not supported out of the box, such as template string literals. It shows how to define a custom validation function and error message.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_90
+
+LANGUAGE: typescript
+CODE:
+```
+const px = z.custom<`${number}px`>((val) => {
+  return typeof val === "string" ? /^\d+px$/.test(val) : false;
+});
+
+type px = z.infer<typeof px>; // `${number}px`
+
+px.parse("42px"); // "42px"
+px.parse("42vw"); // throws;
+
+z.custom<{ arg: string }>(); // performs no validation
+
+z.custom<...>((val) => ..., "custom error message");
+```
+
+----------------------------------------
+
+TITLE: Making Schema Properties Optional with .optional()
+DESCRIPTION: Demonstrates how to make properties in an object schema optional using the .optional() method, allowing those properties to be undefined or omitted.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_12
+
+LANGUAGE: typescript
+CODE:
+```
+const user = z.object({
+  username: z.string().optional(),
+});
+type C = z.infer<typeof user>; // { username?: string | undefined };
+```
+
+----------------------------------------
+
+TITLE: Object Schema Stripping Behavior in TypeScript with Zod
+DESCRIPTION: Shows the default behavior of Zod object schemas where unrecognized keys are stripped during parsing.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_64
+
+LANGUAGE: typescript
+CODE:
+```
+const person = z.object({
+  name: z.string(),
+});
+
+person.parse({
+  name: "bob dylan",
+  extraKey: 61,
+});
+// => { name: "bob dylan" }
+// extraKey has been stripped
+```
+
+----------------------------------------
+
+TITLE: Defining Custom Error Messages in Zod Schemas (TypeScript)
+DESCRIPTION: Demonstrates how to add custom error messages to Zod schemas for invalid types and required fields. This feature allows for more specific error handling in schema validation.
+SOURCE: https://github.com/colinhacks/zod/blob/main/CHANGELOG.md#2025-04-18_snippet_0
+
+LANGUAGE: typescript
+CODE:
+```
+const name = z.string({
+  invalid_type_error: "Name must be string",
+  required_error: "Name is required",
+});
+```
+
+----------------------------------------
+
+TITLE: Implementing Type-Safe Functions with Zod
+DESCRIPTION: Example showing how to implement a type-safe function with automatic input and output validation using the .implement() method. This approach integrates validation directly into function execution.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_40
+
+LANGUAGE: typescript
+CODE:
+```
+const trimmedLength = z
+  .function()
+  .args(z.string()) // 임의의 수의 인자를 받음
+  .returns(z.number())
+  .implement((x) => {
+    // TypeScript는 x가 문자열임을 알고 있습니다!
+    return x.trim().length;
+  });
+
+trimmedLength("sandwich"); // => 8
+trimmedLength(" asdf "); // => 4
+```
+
+----------------------------------------
+
+TITLE: Password Matching Validation with Custom Error Path
+DESCRIPTION: Implements password confirmation validation with a custom error path for targeted error display.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_93
+
+LANGUAGE: typescript
+CODE:
+```
+const passwordForm = z
+  .object({
+    password: z.string(),
+    confirm: z.string(),
+  })
+  .refine((data) => data.password === data.confirm, {
+    message: "Passwords don't match",
+    path: ["confirm"], // path of error
+  });
+
+passwordForm.parse({ password: "asdf", confirm: "qwer" });
+```
+
+----------------------------------------
+
+TITLE: Examining Zod Validation Issues in TypeScript
+DESCRIPTION: Demonstrates accessing and displaying the issues array from a Zod validation error. Each issue contains detailed information about what validation failed and where in the data structure it occurred.
+SOURCE: https://github.com/colinhacks/zod/blob/main/ERROR_HANDLING.md#2025-04-18_snippet_12
+
+LANGUAGE: typescript
+CODE:
+```
+if (!result.success) {
+  console.log(result.error.issues);
+}
+/*
+  [
+    {
+      "code": "invalid_type",
+      "expected": "string",
+      "received": "null",
+      "path": ["name"],
+      "message": "Expected string, received null"
+    },
+    {
+      "validation": "email",
+      "code": "invalid_string",
+      "message": "Invalid email",
+      "path": ["contactInfo","email"]
+    }
+  ]
+*/
+```
+
+----------------------------------------
+
+TITLE: Setting Default Values with Zod's default Method
+DESCRIPTION: The default method allows specifying a fallback value that will be used when the input is undefined. It can accept either a static value or a function that generates a value dynamically.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_52
+
+LANGUAGE: typescript
+CODE:
+```
+const stringWithDefault = z.string().default("tuna");
+
+stringWithDefault.parse(undefined); // => "tuna"
+```
+
+----------------------------------------
+
+TITLE: Formatting Errors in Zod (TypeScript)
+DESCRIPTION: This snippet demonstrates how to use the .format() method to convert a Zod error into a nested object. It shows the structure of the formatted error and how to access specific error messages.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_121
+
+LANGUAGE: typescript
+CODE:
+```
+const result = z
+  .object({
+    name: z.string(),
+  })
+  .safeParse({ name: 12 });
+
+if (!result.success) {
+  const formatted = result.error.format();
+  /* {
+    name: { _errors: [ 'Expected string, received number' ] }
+  } */
+
+  formatted.name?._errors;
+  // => ["Expected string, received number"]
+}
+```
+
+----------------------------------------
+
+TITLE: Flattening Zod Errors for Simpler Access in TypeScript
+DESCRIPTION: Shows how to use the flatten() method to create a simplified error structure with formErrors and fieldErrors. This is useful for single-level object schemas where nested error structures are unnecessary.
+SOURCE: https://github.com/colinhacks/zod/blob/main/ERROR_HANDLING.md#2025-04-18_snippet_15
+
+LANGUAGE: typescript
+CODE:
+```
+if (!result.success) {
+  console.log(result.error.flatten());
+}
+/*
+  {
+    formErrors: [],
+    fieldErrors: {
+      name: ['Expected string, received null'],
+      contactInfo: ['Invalid email']
+    },
+  }
+*/
+```
+
+----------------------------------------
+
+TITLE: Creating Optional Types with Zod
+DESCRIPTION: Shows how to create optional schema types using z.optional(), which allows a value to be either the specified type or undefined.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_11
+
+LANGUAGE: typescript
+CODE:
+```
+const schema = z.optional(z.string());
+
+schema.parse(undefined); // => returns undefined
+type A = z.infer<typeof schema>; // string | undefined
+```
+
+----------------------------------------
+
+TITLE: Creating and Implementing Function Schemas with Zod in TypeScript
+DESCRIPTION: Shows how to define function schemas using Zod, including specifying input arguments and return types. It also demonstrates how to implement a function that automatically validates its inputs and outputs.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_88
+
+LANGUAGE: typescript
+CODE:
+```
+const myFunction = z
+  .function()
+  .args(z.string(), z.number()) // accepts an arbitrary number of arguments
+  .returns(z.boolean());
+
+type myFunction = z.infer<typeof myFunction>;
+// => (arg0: string, arg1: number)=>boolean
+
+const trimmedLength = z
+  .function()
+  .args(z.string()) // accepts an arbitrary number of arguments
+  .returns(z.number())
+  .implement((x) => {
+    // TypeScript knows x is a string!
+    return x.trim().length;
+  });
+
+trimmedLength("sandwich"); // => 8
+trimmedLength(" asdf "); // => 4
+```
+
+----------------------------------------
+
+TITLE: Error Handling with catch Method in Zod
+DESCRIPTION: The catch method provides a fallback value to use when parsing fails, similar to default but for error cases. It can accept either a static value or a function that receives the error context.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_55
+
+LANGUAGE: typescript
+CODE:
+```
+const numberWithCatch = z.number().catch(42);
+
+numberWithCatch.parse(5); // => 5
+numberWithCatch.parse("tuna"); // => 42
+```
+
+----------------------------------------
+
+TITLE: Recursive Type Schema Definition
+DESCRIPTION: Demonstrates how to create recursive type schemas using z.lazy.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_83
+
+LANGUAGE: typescript
+CODE:
+```
+const baseCategorySchema = z.object({
+  name: z.string(),
+});
+
+type Category = z.infer<typeof baseCategorySchema> & {
+  subcategories: Category[];
+};
+
+const categorySchema: z.ZodType<Category> = baseCategorySchema.extend({
+  subcategories: z.lazy(() => categorySchema.array()),
+});
+```
+
+----------------------------------------
+
+TITLE: Async Database Validation with Zod
+DESCRIPTION: Example of an asynchronous refinement that could verify a user ID exists in a database.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_94
+
+LANGUAGE: typescript
+CODE:
+```
+const userId = z.string().refine(async (id) => {
+  // verify that ID exists in database
+  return true;
+});
+```
+
+----------------------------------------
+
+TITLE: Basic String Refinement in TypeScript with Zod
+DESCRIPTION: Demonstrates how to add a custom validation rule to a string schema to limit its length to 255 characters.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_91
+
+LANGUAGE: typescript
+CODE:
+```
+const myString = z.string().refine((val) => val.length <= 255, {
+  message: "String can't be more than 255 characters",
+});
+```
+
+----------------------------------------
+
+TITLE: Union Type Definition
+DESCRIPTION: Shows how to create union types using z.union or the .or method.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_76
+
+LANGUAGE: typescript
+CODE:
+```
+const stringOrNumber = z.union([z.string(), z.number()]);
+
+stringOrNumber.parse("foo"); // passes
+stringOrNumber.parse(14); // passes
+```
+
+----------------------------------------
+
+TITLE: Defining Optional Properties in Zod (TypeScript)
+DESCRIPTION: This snippet demonstrates how to define an object with optional properties in Zod. It showcases Zod's more concise and declarative API for schema definitions compared to io-ts.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_123
+
+LANGUAGE: typescript
+CODE:
+```
+const C = z.object({
+  foo: z.string(),
+  bar: z.number().optional(),
+});
+
+type C = z.infer<typeof C>;
+// returns { foo: string; bar?: number | undefined }
+```
+
+----------------------------------------
+
+TITLE: Tuple Schema Definition
+DESCRIPTION: Shows how to define fixed-length tuples with different element types.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_74
+
+LANGUAGE: typescript
+CODE:
+```
+const athleteSchema = z.tuple([
+  z.string(), // name
+  z.number(), // jersey number
+  z.object({
+    pointsScored: z.number(),
+  }), // statistics
+]);
+```
+
+----------------------------------------
+
+TITLE: Validating During Transformation with Zod
+DESCRIPTION: This example shows how to combine validation and transformation in a single transform function by using the context object to add validation issues, similar to superRefine.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_49
+
+LANGUAGE: typescript
+CODE:
+```
+const numberInString = z.string().transform((val, ctx) => {
+  const parsed = parseInt(val);
+  if (isNaN(parsed)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "숫자가 아닙니다.",
+    });
+
+    // 이는 변환 함수에서 조기에 반환하기 위해 사용할 수 있는
+    // 특별한 심볼입니다. `never` 타입을 가지므로 반환 타입에
+    // 영향을 미치지 않습니다.
+    return z.NEVER;
+  }
+  return parsed;
+});
+```
+
+----------------------------------------
+
+TITLE: Creating Object Schemas with Type Inference in Zod
+DESCRIPTION: Example of defining an object schema with Zod and extracting the inferred TypeScript type, demonstrating Zod's schema and type integration.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_4
+
+LANGUAGE: typescript
+CODE:
+```
+import { z } from "zod";
+
+const User = z.object({
+  username: z.string(),
+});
+
+User.parse({ username: "Ludwig" });
+
+// 추론된 타입 추출
+type User = z.infer<typeof User>;
+// { username: string }
+```
+
+----------------------------------------
+
+TITLE: Preprocessing Input with Zod in TypeScript
+DESCRIPTION: Illustrates how to use z.preprocess() to apply a transformation to the input before parsing. This example shows how to cast a value to a string before validation.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_89
+
+LANGUAGE: typescript
+CODE:
+```
+const castToString = z.preprocess((val) => String(val), z.string());
+```
+
+----------------------------------------
+
+TITLE: Creating Strict Object Schemas in TypeScript with Zod
+DESCRIPTION: Shows how to create a strict object schema that disallows unknown keys using the .strict() method, which will throw an error if unknown keys are present.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_66
+
+LANGUAGE: typescript
+CODE:
+```
+const person = z
+  .object({
+    name: z.string(),
+  })
+  .strict();
+
+person.parse({
+  name: "bob dylan",
+  extraKey: 61,
+});
+// => throws ZodError
+```
+
+----------------------------------------
+
+TITLE: Creating Array Schemas in TypeScript with Zod
+DESCRIPTION: Shows two equivalent ways to create array schemas in Zod, demonstrating how to validate arrays of a specific type. The example highlights the importance of method call order when chaining operations.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_1
+
+LANGUAGE: typescript
+CODE:
+```
+const stringArray = z.array(z.string());
+
+// 相当于
+const stringArray = z.string().array();
+```
+
+----------------------------------------
+
+TITLE: Array Size Constraints
+DESCRIPTION: Demonstrates various methods to constrain array size.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_73
+
+LANGUAGE: typescript
+CODE:
+```
+z.string().array().min(5); // must contain 5 or more items
+z.string().array().max(5); // must contain 5 or fewer items
+z.string().array().length(5); // must contain 5 items exactly
+```
+
+----------------------------------------
+
+TITLE: Using superRefine for Advanced Custom Validation in TypeScript
+DESCRIPTION: The superRefine method allows for more powerful custom validation with multiple validation checks in a single function. It provides access to a context object for adding custom validation issues with specific error codes.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_44
+
+LANGUAGE: typescript
+CODE:
+```
+const Strings = z.array(z.string()).superRefine((val, ctx) => {
+  if (val.length > 3) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.too_big,
+      maximum: 3,
+      type: "array",
+      inclusive: true,
+      message: "Too many items 😡",
+    });
+  }
+
+  if (val.length !== new Set(val).size) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `No duplicates allowed.`,
+    });
+  }
+});
+```
+
+----------------------------------------
+
+TITLE: Type Narrowing with Type Predicates in Zod Refinements
+DESCRIPTION: This example shows how to use type predicates with superRefine to narrow down the type of the data being validated, which is particularly useful when working with nullable or union types.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_46
+
+LANGUAGE: typescript
+CODE:
+```
+const schema = z
+  .object({
+    first: z.string(),
+    second: z.number(),
+  })
+  .nullable()
+  .superRefine((arg, ctx): arg is { first: string; second: number } => {
+    if (!arg) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom, // 이슈 커스터마이징
+        message: "객체가 존재해야 합니다.",
+      });
+    }
+
+    return z.NEVER; // 반환값은 사용되지 않지만, 타입을 만족시키기 위해 반환해야 함
+  })
+  // 여기서 TS는 arg가 null이 아니라는 것을 알고 있음
+  .refine((arg) => arg.first === "bob", "`first`가 `bob`이 아닙니다!");
+```
+
+----------------------------------------
+
+TITLE: Early Validation Abort with SuperRefine
+DESCRIPTION: Demonstrates how to abort validation early using the fatal flag in superRefine.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_96
+
+LANGUAGE: typescript
+CODE:
+```
+const schema = z.number().superRefine((val, ctx) => {
+  if (val < 10) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "should be >= 10",
+      fatal: true,
+    });
+
+    return z.NEVER;
+  }
+
+  if (val !== 12) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "should be twelve",
+    });
+  }
+});
+```
+
+----------------------------------------
+
+TITLE: Number Validation Methods in Zod
+DESCRIPTION: A comprehensive list of number validation methods including range checks, integer validation, sign checks, and other constraints.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_27
+
+LANGUAGE: typescript
+CODE:
+```
+z.number().gt(5);
+z.number().gte(5); // alias .min(5)
+z.number().lt(5);
+z.number().lte(5); // alias .max(5)
+
+z.number().int(); // value must be an integer
+
+z.number().positive(); //     > 0
+z.number().nonnegative(); //  >= 0
+z.number().negative(); //     < 0
+z.number().nonpositive(); //  <= 0
+
+z.number().multipleOf(5); // Evenly divisible by 5. Alias .step(5)
+
+z.number().finite(); // value must be finite, not Infinity or -Infinity
+z.number().safe(); // value must be between Number.MIN_SAFE_INTEGER and Number.MAX_SAFE_INTEGER
+```
+
+----------------------------------------
+
+TITLE: Formatting Zod Errors for Form Display in TypeScript
+DESCRIPTION: Shows how to use the format() method on ZodError to transform validation errors into a nested structure that mirrors the input data. This makes it easier to associate errors with specific form fields.
+SOURCE: https://github.com/colinhacks/zod/blob/main/ERROR_HANDLING.md#2025-04-18_snippet_13
+
+LANGUAGE: typescript
+CODE:
+```
+if (!result.success) {
+  console.log(result.error.format());
+  /*
+    {
+      name: {
+        _errors: ['Expected string, received null']
+      },
+      contactInfo: {
+        email: {
+          _errors: ['Invalid email']
+        }
+      }
+    }
+  */
+}
+```
+
+----------------------------------------
+
+TITLE: Map Schema Definition
+DESCRIPTION: Shows how to create Map schemas with typed keys and values.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_80
+
+LANGUAGE: typescript
+CODE:
+```
+const stringNumberMap = z.map(z.string(), z.number());
+```
+
+----------------------------------------
+
+TITLE: Dynamic Refinement Parameters in Zod
+DESCRIPTION: Shows how to use a function to generate dynamic refinement parameters based on the input value.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_92
+
+LANGUAGE: typescript
+CODE:
+```
+const longString = z.string().refine(
+  (val) => val.length > 10,
+  (val) => ({ message: `${val} is not more than 10 characters` })
+);
+```
+
+----------------------------------------
+
+TITLE: Passing Through Unknown Keys in TypeScript with Zod
+DESCRIPTION: Demonstrates how to configure an object schema to pass through unknown keys using the .passthrough() method.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_65
+
+LANGUAGE: typescript
+CODE:
+```
+person.passthrough().parse({
+  name: "bob dylan",
+  extraKey: 61,
+});
+// => { name: "bob dylan", extraKey: 61 }
+```
+
+----------------------------------------
+
+TITLE: Using catchall Pattern with Object Schema in TypeScript
+DESCRIPTION: Demonstrates how to define an object schema with a catchall pattern that validates all unknown keys according to a specified schema. This allows validation of extra properties beyond the explicitly defined ones.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_0
+
+LANGUAGE: typescript
+CODE:
+```
+const person = z
+  .object({
+    name: z.string(),
+  })
+  .catchall(z.number());
+
+person.parse({
+  name: "bob dylan",
+  validExtraKey: 61, // 运行良好
+});
+
+person.parse({
+  name: "bob dylan",
+  validExtraKey: false, // 未能成功
+});
+// => throws ZodError
+```
+
+----------------------------------------
+
+TITLE: JSON Type Validation with Zod in TypeScript
+DESCRIPTION: A recursive schema for validating JSON values with proper TypeScript type inference. This schema handles all JSON primitive types (string, number, boolean, null) as well as nested objects and arrays.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_37
+
+LANGUAGE: typescript
+CODE:
+```
+const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
+type Literal = z.infer<typeof literalSchema>;
+type Json = Literal | { [key: string]: Json } | Json[];
+const jsonSchema: z.ZodType = z.lazy(() =>
+  z.union([literalSchema, z.array(jsonSchema), z.record(jsonSchema)])
+);
+
+jsonSchema.parse(data);
+```
+
+----------------------------------------
+
+TITLE: Creating Validation Pipelines with pipe Method
+DESCRIPTION: The pipe method allows chaining schemas into validation pipelines, enabling validation of transformed data with a new schema, which is especially useful for validating calculation results.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_60
+
+LANGUAGE: typescript
+CODE:
+```
+z.string()
+  .transform((val) => val.length) // 문자열을 길이로 변환
+  .pipe(z.number().min(5)); // 길이가 5 이상인지 검증
+```
+
+----------------------------------------
+
+TITLE: Using .omit to Remove Properties in TypeScript with Zod
+DESCRIPTION: Shows how to create a new object schema without certain properties using the .omit method, similar to TypeScript's Omit utility.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_58
+
+LANGUAGE: typescript
+CODE:
+```
+const NoIDRecipe = Recipe.omit({ id: true });
+
+type NoIDRecipe = z.infer<typeof NoIDRecipe>;
+// => { name: string, ingredients: string[] }
+```
+
+----------------------------------------
+
+TITLE: Creating Selective Partial Objects in TypeScript with Zod
+DESCRIPTION: Shows how to make only specific properties optional using the .partial() method with a property selection object.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_60
+
+LANGUAGE: typescript
+CODE:
+```
+const optionalEmail = user.partial({
+  email: true,
+});
+/*
+{
+  email?: string | undefined;
+  username: string
+}
+*/
+```
+
+----------------------------------------
+
+TITLE: Array Length Validation with Zod
+DESCRIPTION: Demonstrates methods for validating array length constraints, including minimum, maximum, and exact length requirements without changing the inferred type.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_4
+
+LANGUAGE: typescript
+CODE:
+```
+z.string().array().min(5); // 必须包含5个或更多元素
+z.string().array().max(5); // 必须包含5个或更少元素
+z.string().array().length(5); // 必须正好包含5个元素
+```
+
+----------------------------------------
+
+TITLE: Creating Partial Object Schemas with Selective Fields in Zod (TypeScript)
+DESCRIPTION: Demonstrates how to use the .partial method on Zod object schemas to make specific fields optional. This allows for more flexible object schema definitions.
+SOURCE: https://github.com/colinhacks/zod/blob/main/CHANGELOG.md#2025-04-18_snippet_3
+
+LANGUAGE: typescript
+CODE:
+```
+const user = z.object({
+  name: z.string(),
+  age: z.number(),
+});
+
+const optionalNameUser = user.partial({ name: true });
+// { name?: string; age: number; }
+```
+
+----------------------------------------
+
+TITLE: Extending Object Schemas in TypeScript with Zod
+DESCRIPTION: Demonstrates how to add additional fields to an existing object schema using the .extend() method.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_55
+
+LANGUAGE: typescript
+CODE:
+```
+const DogWithBreed = Dog.extend({
+  breed: z.string(),
+});
+```
+
+----------------------------------------
+
+TITLE: Using .catch with Function Callback in Zod
+DESCRIPTION: The .catch method can also accept a function that receives the error context and generates a dynamic fallback value when validation fails.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_100
+
+LANGUAGE: typescript
+CODE:
+```
+const numberWithRandomCatch = z.number().catch((ctx) => {
+  ctx.error; // the caught ZodError
+  return Math.random();
+});
+
+numberWithRandomCatch.parse("sup"); // => 0.4413456736055323
+numberWithRandomCatch.parse("sup"); // => 0.1871840107401901
+numberWithRandomCatch.parse("sup"); // => 0.7223408162401552
+```
+
+----------------------------------------
+
+TITLE: Creating Enum Schemas from Object Keys with .keyof() in TypeScript
+DESCRIPTION: Shows how to create a ZodEnum schema from the keys of an object schema using the .keyof() method.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_54
+
+LANGUAGE: typescript
+CODE:
+```
+const keySchema = Dog.keyof();
+keySchema; // ZodEnum<["name", "age"]>
+```
+
+----------------------------------------
+
+TITLE: Input vs Output Type Inference in Zod Transforms
+DESCRIPTION: When schemas include transforms, the input and output types can differ. Zod provides separate utilities to extract each.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_114
+
+LANGUAGE: typescript
+CODE:
+```
+const stringToNumber = z.string().transform((val) => val.length);
+
+// ⚠️ Important: z.infer returns the OUTPUT type!
+type input = z.input<typeof stringToNumber>; // string
+type output = z.output<typeof stringToNumber>; // number
+
+// equivalent to z.output!
+type inferred = z.infer<typeof stringToNumber>; // number
+```
+
+----------------------------------------
+
+TITLE: Defining a Person Schema with Zod in TypeScript
+DESCRIPTION: Creates a sample Zod schema for a Person with an array of names and an address object, demonstrating various validation rules like nonempty arrays, minimum values, and strict object validation.
+SOURCE: https://github.com/colinhacks/zod/blob/main/ERROR_HANDLING.md#2025-04-18_snippet_2
+
+LANGUAGE: typescript
+CODE:
+```
+const person = z.object({
+  names: z.array(z.string()).nonempty(), // at least 1 name
+  address: z
+    .object({
+      line1: z.string(),
+      zipCode: z.number().min(10000), // American 5-digit code
+    })
+    .strict(), // do not allow unrecognized keys
+});
+```
+
+----------------------------------------
+
+TITLE: Validating Unknown Keys with Catchall Schemas in TypeScript with Zod
+DESCRIPTION: Demonstrates how to use the .catchall() method to validate all unknown keys against a specific schema, allowing controlled validation of additional properties.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_67
+
+LANGUAGE: typescript
+CODE:
+```
+const person = z
+  .object({
+    name: z.string(),
+  })
+  .catchall(z.number());
+
+person.parse({
+  name: "bob dylan",
+  validExtraKey: 61, // works fine
+});
+
+person.parse({
+  name: "bob dylan",
+  validExtraKey: false, // fails
+});
+// => throws ZodError
+```
+
+----------------------------------------
+
+TITLE: Async Transformations in Zod
+DESCRIPTION: This example shows how to create asynchronous transformations in Zod, which is useful for operations like database lookups or API calls. Such schemas require using parseAsync or safeParseAsync methods.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_51
+
+LANGUAGE: typescript
+CODE:
+```
+const IdToUser = z
+  .string()
+  .uuid()
+  .transform(async (id) => {
+    return await getUserById(id);
+  });
+```
+
+----------------------------------------
+
+TITLE: Creating Discriminated Union Types in Zod
+DESCRIPTION: Shows how to create discriminated union types that validate based on a specific discriminator property, providing more efficient validation and better error reporting.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_7
+
+LANGUAGE: typescript
+CODE:
+```
+type MyUnion =
+  | { status: "success"; data: string }
+  | { status: "failed"; error: Error };
+```
+
+----------------------------------------
+
+TITLE: Intersection Schema Definition
+DESCRIPTION: Shows how to create intersection types using both z.intersection and .and method.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_82
+
+LANGUAGE: typescript
+CODE:
+```
+const Person = z.object({
+  name: z.string(),
+});
+
+const Employee = z.object({
+  role: z.string(),
+});
+
+const EmployedPerson = z.intersection(Person, Employee);
+```
+
+----------------------------------------
+
+TITLE: Using Literal Types in Zod
+DESCRIPTION: Examples of creating and using literal schemas for strings, numbers, bigints, booleans, and symbols in Zod.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_11
+
+LANGUAGE: typescript
+CODE:
+```
+const tuna = z.literal("tuna");
+const twelve = z.literal(12);
+const twobig = z.literal(2n); // bigint literal
+const tru = z.literal(true);
+
+const terrificSymbol = Symbol("terrific");
+const terrific = z.literal(terrificSymbol);
+
+// retrieve literal value
+tuna.value; // "tuna"
+```
+
+----------------------------------------
+
+TITLE: Implementing ZodType with ZodEffects in TypeScript
+DESCRIPTION: Demonstrates how to use ZodType with ZodEffects to create a recursive schema for validating objects with nested children. It shows the usage of z.lazy() for recursive structures and how to define input and output types separately.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_84
+
+LANGUAGE: typescript
+CODE:
+```
+const isValidId = (id: string): id is `${string}/${string}` =>
+  id.split("/").length === 2;
+
+const baseSchema = z.object({
+  id: z.string().refine(isValidId),
+});
+
+type Input = z.input<typeof baseSchema> & {
+  children: Input[];
+};
+
+type Output = z.output<typeof baseSchema> & {
+  children: Output[];
+};
+
+const schema: z.ZodType<Output, z.ZodTypeDef, Input> = baseSchema.extend({
+  children: z.lazy(() => schema.array()),
+});
+```
+
+----------------------------------------
+
+TITLE: Validating Promises with Zod in TypeScript
+DESCRIPTION: Shows how to create and use a Zod schema for validating promises. It demonstrates both synchronous and asynchronous validation of promise values.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_86
+
+LANGUAGE: typescript
+CODE:
+```
+const numberPromise = z.promise(z.number());
+
+numberPromise.parse("tuna");
+// ZodError: Non-Promise type: string
+
+numberPromise.parse(Promise.resolve("tuna"));
+// => Promise<number>
+
+const test = async () => {
+  await numberPromise.parse(Promise.resolve("tuna"));
+  // ZodError: Non-number type: string
+
+  await numberPromise.parse(Promise.resolve(3.14));
+  // => 3.14
+};
+```
+
+----------------------------------------
+
+TITLE: Correct Approach to Generic Functions with Zod
+DESCRIPTION: This demonstrates the correct approach to writing generic functions that accept Zod schemas using ZodTypeAny, which preserves the specific schema type.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_116
+
+LANGUAGE: typescript
+CODE:
+```
+function inferSchema<T extends z.ZodTypeAny>(schema: T) {
+  return schema;
+}
+
+inferSchema(z.string());
+// => ZodString
+```
+
+----------------------------------------
+
+TITLE: Creating Partial Object Schemas in TypeScript with Zod
+DESCRIPTION: Demonstrates how to make all properties of an object schema optional using the .partial() method, similar to TypeScript's Partial utility type.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_59
+
+LANGUAGE: typescript
+CODE:
+```
+const user = z.object({
+  email: z.string(),
+  username: z.string(),
+});
+// { email: string; username: string }
+
+const partialUser = user.partial();
+// { email?: string | undefined; username?: string | undefined }
+```
+
+----------------------------------------
+
+TITLE: Using Zod's instanceof for Class Instance Validation in TypeScript
+DESCRIPTION: Demonstrates how to use z.instanceof() to validate that an input is an instance of a specific class. This is useful for validating inputs against classes from third-party libraries.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_87
+
+LANGUAGE: typescript
+CODE:
+```
+class Test {
+  name: string;
+}
+
+const TestSchema = z.instanceof(Test);
+
+const blob: any = "whatever";
+TestSchema.parse(new Test()); // passes
+TestSchema.parse(blob); // throws
+```
+
+----------------------------------------
+
+TITLE: Creating Record Types with Zod
+DESCRIPTION: Shows how to create record schemas that validate objects with string keys and values of a specified type, useful for dictionaries and caches.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_17
+
+LANGUAGE: typescript
+CODE:
+```
+const NumberCache = z.record(z.number());
+
+type NumberCache = z.infer<typeof NumberCache>;
+// => { [k: string]: number }
+```
+
+----------------------------------------
+
+TITLE: Defining Zod Enums in TypeScript
+DESCRIPTION: Creates a schema that validates against a fixed set of string values using z.enum(). Shows how to define an enum and infer its TypeScript type as a union of string literals.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_36
+
+LANGUAGE: typescript
+CODE:
+```
+const FishEnum = z.enum(["Salmon", "Tuna", "Trout"]);
+type FishEnum = z.infer<typeof FishEnum>;
+// 'Salmon' | 'Tuna' | 'Trout'
+```
+
+----------------------------------------
+
+TITLE: Creating Deep Partial Object Schemas in TypeScript with Zod
+DESCRIPTION: Demonstrates how to recursively make all properties optional throughout a nested object structure using the .deepPartial() method.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_61
+
+LANGUAGE: typescript
+CODE:
+```
+const user = z.object({
+  username: z.string(),
+  location: z.object({
+    latitude: z.number(),
+    longitude: z.number(),
+  }),
+  strings: z.array(z.object({ value: z.string() })),
+});
+
+const deepPartialUser = user.deepPartial();
+
+/*
+{
+  username?: string | undefined,
+  location?: {
+    latitude?: number | undefined;
+    longitude?: number | undefined;
+  } | undefined,
+  strings?: { value?: string}[]
+}
+*/
+```
+
+----------------------------------------
+
+TITLE: Using Records for Object Stores in Zod
+DESCRIPTION: Demonstrates how to use record schemas to create type-safe object stores or caches with structured values, validating the values while allowing arbitrary string keys.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_18
+
+LANGUAGE: typescript
+CODE:
+```
+const userSchema = z.object({ name: z.string() });
+const userStoreSchema = z.record(userSchema);
+
+type UserStore = z.infer<typeof userStoreSchema>;
+// => type UserStore = { [ x: string ]: { name: string } }
+
+const userStore: UserStore = {};
+
+userStore["77d2586b-9e8e-4ecf-8b21-ea7e0530eadd"] = {
+  name: "Carlotta",
+}; // passes
+
+userStore["77d2586b-9e8e-4ecf-8b21-ea7e0530eadd"] = {
+  whatever: "Ice cream sundae",
+}; // TypeError
+```
+
+----------------------------------------
+
+TITLE: Making Specific Properties Required in TypeScript with Zod
+DESCRIPTION: Demonstrates how to make only specific properties required using the .required() method with a property selection object.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_63
+
+LANGUAGE: typescript
+CODE:
+```
+const requiredEmail = user.required({
+  email: true,
+});
+/*
+{
+  email: string;
+  username?: string | undefined;
+}
+*/
+```
+
+----------------------------------------
+
+TITLE: Validating Native Numeric Enums with Zod
+DESCRIPTION: Shows how to validate TypeScript's native numeric enums using z.nativeEnum(). This accepts both the enum members and their numeric values.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_25
+
+LANGUAGE: typescript
+CODE:
+```
+enum Fruits {
+  Apple,
+  Banana,
+}
+
+const FruitEnum = z.nativeEnum(Fruits);
+type FruitEnum = z.infer<typeof FruitEnum>; // Fruits
+
+FruitEnum.parse(Fruits.Apple); // 通过
+FruitEnum.parse(Fruits.Banana); // 通过
+FruitEnum.parse(0); // 通过
+FruitEnum.parse(1); // 通过
+FruitEnum.parse(3); // 未通过
+```
+
+----------------------------------------
+
+TITLE: Coercion Implementation for Different Types in Zod
+DESCRIPTION: Explanation of how coercion works for different primitive types in Zod, using built-in JavaScript constructors.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_9
+
+LANGUAGE: typescript
+CODE:
+```
+z.coerce.string(); // String(input)
+z.coerce.number(); // Number(input)
+z.coerce.boolean(); // Boolean(input)
+z.coerce.bigint(); // BigInt(input)
+z.coerce.date(); // new Date(input)
+```
+
+----------------------------------------
+
+TITLE: Creating Zod Enums with Const Assertion in TypeScript
+DESCRIPTION: Demonstrates how to use 'as const' to define enum values as a tuple of strings, which preserves type information for Zod enum creation.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_37
+
+LANGUAGE: typescript
+CODE:
+```
+const VALUES = ["Salmon", "Tuna", "Trout"] as const;
+const FishEnum = z.enum(VALUES);
+```
+
+----------------------------------------
+
+TITLE: Customizing Zod Error Messages with ZodErrorMap in TypeScript
+DESCRIPTION: Shows how to create a custom error map to override Zod's default error messages. The example customizes messages for invalid types and custom validations based on the issue code.
+SOURCE: https://github.com/colinhacks/zod/blob/main/ERROR_HANDLING.md#2025-04-18_snippet_5
+
+LANGUAGE: typescript
+CODE:
+```
+import { z } from "zod";
+
+const customErrorMap: z.ZodErrorMap = (issue, ctx) => {
+  if (issue.code === z.ZodIssueCode.invalid_type) {
+    if (issue.expected === "string") {
+      return { message: "bad type!" };
+    }
+  }
+  if (issue.code === z.ZodIssueCode.custom) {
+    return { message: `less-than-${(issue.params || {}).minimum}` };
+  }
+  return { message: ctx.defaultError };
+};
+
+z.setErrorMap(customErrorMap);
+```
+
+----------------------------------------
+
+TITLE: Creating Non-Empty Array Schemas with Zod
+DESCRIPTION: Shows how to use the .nonempty() method to ensure arrays contain at least one element. This changes the inferred type to a non-empty tuple type.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_3
+
+LANGUAGE: typescript
+CODE:
+```
+const nonEmptyStrings = z.string().array().nonempty();
+// 现在推断的类型是
+// [string, ...string[]]
+
+nonEmptyStrings.parse([]); // throws: "Array cannot be empty"
+nonEmptyStrings.parse(["Ariana Grande"]); // passes
+```
+
+----------------------------------------
+
+TITLE: Using .pick to Keep Selected Properties in TypeScript with Zod
+DESCRIPTION: Demonstrates how to create a new object schema with only selected properties using the .pick method, similar to TypeScript's Pick utility.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_57
+
+LANGUAGE: typescript
+CODE:
+```
+const Recipe = z.object({
+  id: z.string(),
+  name: z.string(),
+  ingredients: z.array(z.string()),
+});
+
+const JustTheName = Recipe.pick({ name: true });
+type JustTheName = z.infer<typeof JustTheName>;
+// => { name: string }
+```
+
+----------------------------------------
+
+TITLE: 구별된 유니온 스키마 정의 및 사용
+DESCRIPTION: 특정 키를 기준으로 구별되는 객체들의 유니온 타입을 효율적으로 정의하는 방법을 보여줍니다.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_31
+
+LANGUAGE: typescript
+CODE:
+```
+const myUnion = z.discriminatedUnion("status", [
+  z.object({ status: z.literal("success"), data: z.string() }),
+  z.object({ status: z.literal("failed"), error: z.instanceof(Error) }),
+]);
+
+myUnion.parse({ status: "success", data: "yippie ki yay" });
+```
+
+LANGUAGE: typescript
+CODE:
+```
+myUnion.options; // [ZodObject, ZodObject]
+```
+
+LANGUAGE: typescript
+CODE:
+```
+const A = z.discriminatedUnion("status", [
+  /* options */
+]);
+const B = z.discriminatedUnion("status", [
+  /* options */
+]);
+
+const AB = z.discriminatedUnion("status", [...A.options, ...B.options]);
+```
+
+----------------------------------------
+
+TITLE: Customizing String Schema Error Messages in Zod
+DESCRIPTION: Shows how to customize error messages when creating a string schema and when using specific validation methods.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_13
+
+LANGUAGE: typescript
+CODE:
+```
+const name = z.string({
+  required_error: "Name is required",
+  invalid_type_error: "Name must be a string",
+});
+```
+
+----------------------------------------
+
+TITLE: Non-Empty Array Validation
+DESCRIPTION: Demonstrates how to ensure arrays contain at least one element using nonempty() method.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_71
+
+LANGUAGE: typescript
+CODE:
+```
+const nonEmptyStrings = z.string().array().nonempty();
+
+nonEmptyStrings.parse([]); // throws: "Array cannot be empty"
+nonEmptyStrings.parse(["Ariana Grande"]); // passes
+```
+
+----------------------------------------
+
+TITLE: Validating String Enums with z.nativeEnum() in TypeScript
+DESCRIPTION: Shows how to validate against existing string TypeScript enums using z.nativeEnum(), with examples of valid and invalid values.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_43
+
+LANGUAGE: typescript
+CODE:
+```
+enum Fruits {
+  Apple = "apple",
+  Banana = "banana",
+  Cantaloupe, // you can mix numerical and string enums
+}
+
+const FruitEnum = z.nativeEnum(Fruits);
+type FruitEnum = z.infer<typeof FruitEnum>; // Fruits
+
+FruitEnum.parse(Fruits.Apple); // passes
+FruitEnum.parse(Fruits.Cantaloupe); // passes
+FruitEnum.parse("apple"); // passes
+FruitEnum.parse("banana"); // passes
+FruitEnum.parse(0); // passes
+FruitEnum.parse("Cantaloupe"); // fails
+```
+
+----------------------------------------
+
+TITLE: Customizing Validation Error Messages in Zod
+DESCRIPTION: Examples showing how to provide custom error messages for specific string validation methods in Zod to improve user feedback.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_14
+
+LANGUAGE: typescript
+CODE:
+```
+z.string().min(5, { message: "5자 이상이어야 합니다" });
+z.string().max(5, { message: "5자 이하여야 합니다" });
+z.string().length(5, { message: "정확히 5자여야 합니다" });
+z.string().email({ message: "유효하지 않은 이메일 주소입니다" });
+z.string().url({ message: "유효하지 않은 URL입니다" });
+z.string().emoji({ message: "이모지가 아닌 문자가 포함되어 있습니다" });
+z.string().uuid({ message: "유효하지 않은 UUID입니다" });
+z.string().includes("tuna", { message: "'tuna'가 포함되어야 합니다" });
+z.string().startsWith("https://", { message: "보안 URL이어야 합니다" });
+z.string().endsWith(".com", { message: ".com 도메인만 허용됩니다" });
+z.string().datetime({
+  message: "유효하지 않은 날짜/시간 문자열입니다! UTC여야 합니다.",
+});
+z.string().date({ message: "유효하지 않은 날짜 문자열입니다!" });
+z.string().time({ message: "유효하지 않은 시간 문자열입니다!" });
+z.string().ip({ message: "유효하지 않은 IP 주소입니다" });
+z.string().cidr({ message: "유효하지 않은 CIDR입니다" });
+```
+
+----------------------------------------
+
+TITLE: Implementing Discriminated Unions with Zod
+DESCRIPTION: Demonstrates how to create and use discriminated unions in Zod, which provide more efficient validation and better error reporting by examining a discriminator field.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_8
+
+LANGUAGE: typescript
+CODE:
+```
+const myUnion = z.discriminatedUnion("status", [
+  z.object({ status: z.literal("success"), data: z.string() }),
+  z.object({ status: z.literal("failed"), error: z.instanceof(Error) }),
+]);
+
+myUnion.parse({ status: "success", data: "yippie ki yay" });
+```
+
+----------------------------------------
+
+TITLE: Custom Error Message for Non-Empty Arrays
+DESCRIPTION: Shows how to specify a custom error message for non-empty array validation.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_72
+
+LANGUAGE: typescript
+CODE:
+```
+const nonEmptyStrings = z.string().array().nonempty({
+  message: "Can't be empty!",
+});
+```
+
+----------------------------------------
+
+TITLE: Record Schema Definition
+DESCRIPTION: Demonstrates how to create and use record schemas for key-value validation.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_79
+
+LANGUAGE: typescript
+CODE:
+```
+const User = z.object({ name: z.string() });
+
+const UserStore = z.record(z.string(), User);
+type UserStore = z.infer<typeof UserStore>;
+```
+
+----------------------------------------
+
+TITLE: Validating ISO 8601 Datetime Strings in Zod
+DESCRIPTION: Shows how to use the datetime validation method for strings to enforce ISO 8601 format with examples of valid and invalid inputs.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_15
+
+LANGUAGE: typescript
+CODE:
+```
+const datetime = z.string().datetime();
+
+datetime.parse("2020-01-01T00:00:00Z"); // pass
+datetime.parse("2020-01-01T00:00:00.123Z"); // pass
+datetime.parse("2020-01-01T00:00:00.123456Z"); // pass (arbitrary precision)
+datetime.parse("2020-01-01T00:00:00+02:00"); // fail (no offsets allowed)
+```
+
+----------------------------------------
+
+TITLE: Using .catch Method with Zod in TypeScript
+DESCRIPTION: The .catch method provides a fallback value for when schema validation fails. It can either return a static value or execute a function that receives the error context and returns a dynamic value.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_99
+
+LANGUAGE: typescript
+CODE:
+```
+const numberWithCatch = z.number().catch(42);
+
+numberWithCatch.parse(5); // => 5
+numberWithCatch.parse("tuna"); // => 42
+```
+
+----------------------------------------
+
+TITLE: Validating Numeric Enums with z.nativeEnum() in TypeScript
+DESCRIPTION: Demonstrates how to validate against existing numeric TypeScript enums using z.nativeEnum(), showing which values pass and fail validation.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_42
+
+LANGUAGE: typescript
+CODE:
+```
+enum Fruits {
+  Apple,
+  Banana,
+}
+
+const FruitEnum = z.nativeEnum(Fruits);
+type FruitEnum = z.infer<typeof FruitEnum>; // Fruits
+
+FruitEnum.parse(Fruits.Apple); // passes
+FruitEnum.parse(Fruits.Banana); // passes
+FruitEnum.parse(0); // passes
+FruitEnum.parse(1); // passes
+FruitEnum.parse(3); // fails
+```
+
+----------------------------------------
+
+TITLE: Creating Optional Schemas with z.optional() in TypeScript
+DESCRIPTION: Demonstrates how to create optional schemas using z.optional(), which allows undefined as a valid value and updates the inferred TypeScript type.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_46
+
+LANGUAGE: typescript
+CODE:
+```
+const schema = z.optional(z.string());
+
+schema.parse(undefined); // => returns undefined
+type A = z.infer<typeof schema>; // string | undefined
+```
+
+----------------------------------------
+
+TITLE: Time Validation with Precision Limits in Zod
+DESCRIPTION: Example of configuring time validation in Zod with specific precision requirements for the decimal seconds part of ISO time formatted strings.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_21
+
+LANGUAGE: typescript
+CODE:
+```
+const time = z.string().time({ precision: 3 });
+
+time.parse("00:00:00.123"); // 통과
+time.parse("00:00:00.123456"); // 실패
+time.parse("00:00:00"); // 실패
+```
+
+----------------------------------------
+
+TITLE: Retrieving Zod Enum Options as Tuple in TypeScript
+DESCRIPTION: Demonstrates how to retrieve the list of enum options as a tuple using the .options property of a Zod enum schema.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_40
+
+LANGUAGE: typescript
+CODE:
+```
+FishEnum.options; // ["Salmon", "Tuna", "Trout"];
+```
+
+----------------------------------------
+
+TITLE: IP Address Validation in Zod
+DESCRIPTION: Validating IP addresses with the ip method, which allows both IPv4 and IPv6 by default.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_22
+
+LANGUAGE: typescript
+CODE:
+```
+const ip = z.string().ip();
+
+ip.parse("192.168.1.1"); // pass
+ip.parse("84d5:51a0:9114:1855:4cfa:f2d7:1f12:7003"); // pass
+ip.parse("84d5:51a0:9114:1855:4cfa:f2d7:1f12:192.168.1.1"); // pass
+
+ip.parse("256.1.1.1"); // fail
+ip.parse("84d5:51a0:9114:gggg:4cfa:f2d7:1f12:7003"); // fail
+```
+
+----------------------------------------
+
+TITLE: Using .readonly Method in Zod
+DESCRIPTION: The .readonly method creates a schema that freezes the parsed object with Object.freeze() and marks the inferred type as readonly. This prevents mutations to the object properties.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_110
+
+LANGUAGE: typescript
+CODE:
+```
+const schema = z.object({ name: z.string() }).readonly();
+type schema = z.infer<typeof schema>;
+// Readonly<{name: string}>
+
+const result = schema.parse({ name: "fido" });
+result.name = "simba"; // error
+```
+
+----------------------------------------
+
+TITLE: Using Contextual Error Maps in Zod Parse Methods with TypeScript
+DESCRIPTION: Demonstrates passing an error map directly to a parse method. This has the highest priority in the error map chain and will override all other error maps for this specific parsing operation.
+SOURCE: https://github.com/colinhacks/zod/blob/main/ERROR_HANDLING.md#2025-04-18_snippet_8
+
+LANGUAGE: typescript
+CODE:
+```
+z.string().parse("adsf", { errorMap: myErrorMap });
+```
+
+----------------------------------------
+
+TITLE: Creating Nullable Types with Zod
+DESCRIPTION: Demonstrates how to create nullable schema types that accept either the specified type or null using the z.nullable() function.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_14
+
+LANGUAGE: typescript
+CODE:
+```
+const nullableString = z.nullable(z.string());
+nullableString.parse("asdf"); // => "asdf"
+nullableString.parse(null); // => null
+```
+
+----------------------------------------
+
+TITLE: Specifying IP Version in Zod Validation
+DESCRIPTION: Setting the IP version to validate specifically for IPv4 or IPv6 addresses.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_23
+
+LANGUAGE: typescript
+CODE:
+```
+const ipv4 = z.string().ip({ version: "v4" });
+ipv4.parse("84d5:51a0:9114:1855:4cfa:f2d7:1f12:7003"); // fail
+
+const ipv6 = z.string().ip({ version: "v6" });
+ipv6.parse("192.168.1.1"); // fail
+```
+
+----------------------------------------
+
+TITLE: Creating Tuple Schemas with Zod
+DESCRIPTION: Demonstrates how to create tuple schemas that validate fixed-length arrays with specific types for each position, useful for structured data.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_30
+
+LANGUAGE: typescript
+CODE:
+```
+const athleteSchema = z.tuple([
+  z.string(), // name
+  z.number(), // jersey number
+  z.object({
+    pointsScored: z.number(),
+  }), // statistics
+]);
+
+type Athlete = z.infer<typeof athleteSchema>;
+// type Athlete = [string, number, { pointsScored: number }]
+```
+
+----------------------------------------
+
+TITLE: IP Address Validation in Zod
+DESCRIPTION: Examples of validating IP addresses using Zod's string IP validation method, which supports both IPv4 and IPv6 formats.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_22
+
+LANGUAGE: typescript
+CODE:
+```
+const ip = z.string().ip();
+
+ip.parse("192.168.1.1"); // 통과
+ip.parse("84d5:51a0:9114:1855:4cfa:f2d7:1f12:7003"); // 통과
+ip.parse("84d5:51a0:9114:1855:4cfa:f2d7:1f12:192.168.1.1"); // 통과
+
+ip.parse("256.1.1.1"); // 실패
+ip.parse("84d5:51a0:9114:gggg:4cfa:f2d7:1f12:7003"); // 실패
+```
+
+----------------------------------------
+
+TITLE: Combining ZodType with ZodEffects in TypeScript
+DESCRIPTION: A code example showing how to combine z.ZodType with z.ZodEffects for creating recursive validation schemas with refinements. This pattern allows for validating nested structures with proper type definitions for both input and output types.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_36
+
+LANGUAGE: typescript
+CODE:
+```
+const isValidId = (id: string): id is `${string}/${string}` =>
+  id.split("/").length === 2;
+
+const baseSchema = z.object({
+  id: z.string().refine(isValidId),
+});
+
+type Input = z.input & {
+  children: Input[];
+};
+
+type Output = z.output & {
+  children: Output[];
+};
+
+const schema: z.ZodType = baseSchema.extend({
+  children: z.lazy(() => schema.array()),
+});
+```
+
+----------------------------------------
+
+TITLE: Validating Native String Enums with Zod
+DESCRIPTION: Demonstrates validation of TypeScript's native string enums using z.nativeEnum(). This works with string enums and mixed string/numeric enums.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_26
+
+LANGUAGE: typescript
+CODE:
+```
+enum Fruits {
+  Apple = "apple",
+  Banana = "banana",
+  Cantaloupe, // 你可以混合使用数字和字符串的枚举
+}
+
+const FruitEnum = z.nativeEnum(Fruits);
+type FruitEnum = z.infer<typeof FruitEnum>; // Fruits
+
+FruitEnum.parse(Fruits.Apple); // 通过
+FruitEnum.parse(Fruits.Cantaloupe); // 通过
+FruitEnum.parse("apple"); // 通过
+FruitEnum.parse("banana"); // 通过
+FruitEnum.parse(0); // 通过
+FruitEnum.parse("Cantaloupe"); // 未通过
+```
+
+----------------------------------------
+
+TITLE: Making Schemas Nullable with .nullable()
+DESCRIPTION: Shows how to use the .nullable() method to make an existing schema accept null values in addition to its original type.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_15
+
+LANGUAGE: typescript
+CODE:
+```
+const E = z.string().nullable(); // equivalent to D
+type E = z.infer<typeof E>; // string | null
+```
+
+----------------------------------------
+
+TITLE: Using .or Method for Union Types in Zod
+DESCRIPTION: The .or method is a convenience method for creating union types. It's equivalent to z.union([schema1, schema2]).
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_106
+
+LANGUAGE: typescript
+CODE:
+```
+const stringOrNumber = z.string().or(z.number()); // string | number
+
+// equivalent to
+z.union([z.string(), z.number()]);
+```
+
+----------------------------------------
+
+TITLE: Using .optional Method in Zod
+DESCRIPTION: The .optional method returns an optional version of a schema that accepts both the schema type and undefined. It's a convenience method equivalent to z.optional(schema).
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_101
+
+LANGUAGE: typescript
+CODE:
+```
+const optionalString = z.string().optional(); // string | undefined
+
+// equivalent to
+z.optional(z.string());
+```
+
+----------------------------------------
+
+TITLE: Using .optional() Method on Existing Schemas in TypeScript
+DESCRIPTION: Shows how to use the .optional() method directly on an existing schema to make a property optional within an object schema.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_47
+
+LANGUAGE: typescript
+CODE:
+```
+const user = z.object({
+  username: z.string().optional(),
+});
+type C = z.infer<typeof user>; // { username?: string | undefined };
+```
+
+----------------------------------------
+
+TITLE: Using .and Method for Intersection Types in Zod
+DESCRIPTION: The .and method is a convenience method for creating intersection types in Zod. It combines two schemas into one that validates both.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_107
+
+LANGUAGE: typescript
+CODE:
+```
+const nameAndAge = z
+  .object({ name: z.string() })
+  .and(z.object({ age: z.number() })); // { name: string } & { age: number }
+
+// equivalent to
+z.intersection(z.object({ name: z.string() }), z.object({ age: z.number() }));
+```
+
+----------------------------------------
+
+TITLE: Using .nullish Method in Zod
+DESCRIPTION: The .nullish method returns a 'nullish' version of a schema that accepts the schema type, null, and undefined. It's equivalent to chaining .nullable() and .optional().
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_103
+
+LANGUAGE: typescript
+CODE:
+```
+const nullishString = z.string().nullish(); // string | null | undefined
+
+// equivalent to
+z.string().nullable().optional();
+```
+
+----------------------------------------
+
+TITLE: Using .nullable Method in Zod
+DESCRIPTION: The .nullable method returns a nullable version of a schema that accepts both the schema type and null. It's a convenience method equivalent to z.nullable(schema).
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_102
+
+LANGUAGE: typescript
+CODE:
+```
+const nullableString = z.string().nullable(); // string | null
+
+// equivalent to
+z.nullable(z.string());
+```
+
+----------------------------------------
+
+TITLE: Unwrapping Optional Schemas in TypeScript
+DESCRIPTION: Demonstrates how to extract the wrapped schema from a ZodOptional instance using the .unwrap() method.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_48
+
+LANGUAGE: typescript
+CODE:
+```
+const stringSchema = z.string();
+const optionalString = stringSchema.optional();
+optionalString.unwrap() === stringSchema; // true
+```
+
+----------------------------------------
+
+TITLE: Using Type Coercion in Zod
+DESCRIPTION: Examples of using Zod's coercion feature to automatically convert input values to specific types during parsing, with detailed explanation of coercion behavior.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_6
+
+LANGUAGE: typescript
+CODE:
+```
+const schema = z.coerce.string();
+schema.parse("tuna"); // => "tuna"
+schema.parse(12); // => "12"
+```
+
+----------------------------------------
+
+TITLE: Creating Enums with const Assertion in Zod
+DESCRIPTION: Demonstrates how to create enum schemas using an array with a const assertion, allowing for better code organization while maintaining type inference.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_22
+
+LANGUAGE: typescript
+CODE:
+```
+const VALUES = ["Salmon", "Tuna", "Trout"] as const;
+const FishEnum = z.enum(VALUES);
+```
+
+----------------------------------------
+
+TITLE: Using .array Method in Zod
+DESCRIPTION: The .array method is a convenience method that returns an array schema for the given type. It's equivalent to z.array(schema).
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_104
+
+LANGUAGE: typescript
+CODE:
+```
+const stringArray = z.string().array(); // string[]
+
+// equivalent to
+z.array(z.string());
+```
+
+----------------------------------------
+
+TITLE: Creating Nullable Schemas with z.nullable() in TypeScript
+DESCRIPTION: Shows how to create nullable schemas using z.nullable(), which allows null as a valid value and updates the inferred type.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_49
+
+LANGUAGE: typescript
+CODE:
+```
+const nullableString = z.nullable(z.string());
+nullableString.parse("asdf"); // => "asdf"
+nullableString.parse(null); // => null
+```
+
+----------------------------------------
+
+TITLE: Custom Error Paths with Refinements in Zod
+DESCRIPTION: Demonstrating how to use custom error paths with refinements to direct validation errors to specific fields. This is useful for form validation when the error relates to a specific field.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_43
+
+LANGUAGE: typescript
+CODE:
+```
+const passwordForm = z
+  .object({
+    password: z.string(),
+    confirm: z.string(),
+  })
+  .refine((data) => data.password === data.confirm, {
+    message: "비밀번호가 일치하지 않습니다",
+    path: ["confirm"], // 에러 경로
+  });
+
+passwordForm.parse({ password: "asdf", confirm: "qwer" });
+```
+
+----------------------------------------
+
+TITLE: Unwrapping Nullable Schemas in TypeScript
+DESCRIPTION: Shows how to extract the wrapped schema from a ZodNullable instance using the .unwrap() method.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_51
+
+LANGUAGE: typescript
+CODE:
+```
+const stringSchema = z.string();
+const nullableString = stringSchema.nullable();
+nullableString.unwrap() === stringSchema; // true
+```
+
+----------------------------------------
+
+TITLE: Creating Subsets of Zod Enums in TypeScript
+DESCRIPTION: Shows how to create subsets of a Zod enum using the .extract and .exclude methods to create new enums with a filtered set of values.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_41
+
+LANGUAGE: typescript
+CODE:
+```
+const FishEnum = z.enum(["Salmon", "Tuna", "Trout"]);
+const SalmonAndTrout = FishEnum.extract(["Salmon", "Trout"]);
+const TunaOnly = FishEnum.exclude(["Salmon", "Trout"]);
+```
+
+----------------------------------------
+
+TITLE: Creating Custom Schemas in Zod
+DESCRIPTION: Using z.custom() to create schemas for types that aren't natively supported by Zod, such as template literal types. This approach allows for custom validation logic with proper TypeScript inference.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_41
+
+LANGUAGE: typescript
+CODE:
+```
+const px = z.custom((val) => {
+  return typeof val === "string" ? /^\d+px$/.test(val) : false;
+});
+
+type px = z.infer<typeof px>; // `${number}px`
+
+px.parse("42px"); // "42px"
+px.parse("42vw"); // 에러 발생
+```
+
+----------------------------------------
+
+TITLE: Using Dynamic Default Values with Functions in Zod
+DESCRIPTION: This example demonstrates how to use a function with the default method to generate a different default value each time it's needed, such as random values or timestamps.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_53
+
+LANGUAGE: typescript
+CODE:
+```
+const numberWithRandomDefault = z.number().default(Math.random);
+
+numberWithRandomDefault.parse(undefined); // => 0.4413456736055323
+numberWithRandomDefault.parse(undefined); // => 0.1871840107401901
+numberWithRandomDefault.parse(undefined); // => 0.7223408162401552
+```
+
+----------------------------------------
+
+TITLE: Unwrapping Nullable Types in Zod
+DESCRIPTION: Demonstrates the .unwrap() method for nullable schemas, which returns the original schema without the nullable property.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_16
+
+LANGUAGE: typescript
+CODE:
+```
+const stringSchema = z.string();
+const nullableString = stringSchema.nullable();
+nullableString.unwrap() === stringSchema; // true
+```
+
+----------------------------------------
+
+TITLE: Creating Intersection Types with Zod
+DESCRIPTION: Shows how to create intersection types combining multiple schemas using z.intersection or the .and() method, useful for combining object schemas.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_28
+
+LANGUAGE: typescript
+CODE:
+```
+const Person = z.object({
+  name: z.string(),
+});
+
+const Employee = z.object({
+  role: z.string(),
+});
+
+const EmployedPerson = z.intersection(Person, Employee);
+
+// equivalent to:
+const EmployedPerson = Person.and(Employee);
+```
+
+----------------------------------------
+
+TITLE: Optional URL Validation
+DESCRIPTION: Demonstrates how to validate an optional URL input using union types.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_77
+
+LANGUAGE: typescript
+CODE:
+```
+const optionalUrl = z.union([z.string().url().nullish(), z.literal("")]);
+
+console.log(optionalUrl.safeParse(undefined).success); // true
+console.log(optionalUrl.safeParse(null).success); // true
+console.log(optionalUrl.safeParse("").success); // true
+console.log(optionalUrl.safeParse("https://zod.dev").success); // true
+console.log(optionalUrl.safeParse("not a valid url").success); // false
+```
+
+----------------------------------------
+
+TITLE: Accessing Zod Enum Values for Autocompletion in TypeScript
+DESCRIPTION: Shows how to use the .enum property of a Zod enum schema to get autocompletion and access enum values as an object.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_39
+
+LANGUAGE: typescript
+CODE:
+```
+FishEnum.enum.Salmon; // => autocompletes
+
+FishEnum.enum;
+/*
+=> {
+  Salmon: "Salmon",
+  Tuna: "Tuna",
+  Trout: "Trout",
+}
+*/
+```
+
+----------------------------------------
+
+TITLE: Chaining Methods with Coerced Types in Zod
+DESCRIPTION: Example showing how coerced types can be combined with other validation methods in Zod.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_8
+
+LANGUAGE: typescript
+CODE:
+```
+z.coerce.string().email().min(5);
+```
+
+----------------------------------------
+
+TITLE: Dynamic Error Handling with catch Method Functions
+DESCRIPTION: This example shows how to use a function with the catch method to dynamically generate a fallback value based on the error context, which includes the ZodError that occurred during parsing.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_56
+
+LANGUAGE: typescript
+CODE:
+```
+const numberWithRandomCatch = z.number().catch((ctx) => {
+  ctx.error; // 발생한 ZodError
+  return Math.random();
+});
+
+numberWithRandomCatch.parse("sup"); // => 0.4413456736055323
+numberWithRandomCatch.parse("sup"); // => 0.1871840107401901
+numberWithRandomCatch.parse("sup"); // => 0.7223408162401552
+```
+
+----------------------------------------
+
+TITLE: Making Optional Properties Required in TypeScript with Zod
+DESCRIPTION: Shows how to make all properties required in an object schema using the .required() method, which is the opposite of .partial().
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_62
+
+LANGUAGE: typescript
+CODE:
+```
+const user = z
+  .object({
+    email: z.string(),
+    username: z.string(),
+  })
+  .partial();
+// { email?: string | undefined; username?: string | undefined }
+
+const requiredUser = user.required();
+// { email: string; username: string }
+```
+
+----------------------------------------
+
+TITLE: Creating Map Schemas with Zod
+DESCRIPTION: Shows how to validate JavaScript Map objects with specific key and value types using z.map().
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_19
+
+LANGUAGE: typescript
+CODE:
+```
+const stringNumberMap = z.map(z.string(), z.number());
+
+type StringNumberMap = z.infer<typeof stringNumberMap>;
+// type StringNumber = Map<string, number>
+```
+
+----------------------------------------
+
+TITLE: 객체 스키마 알려지지 않은 키 처리 메서드
+DESCRIPTION: 객체 스키마에서 알려지지 않은 키를 처리하는 .passthrough(), .strict(), .catchall() 메서드 사용법을 보여줍니다.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_27
+
+LANGUAGE: typescript
+CODE:
+```
+const person = z.object({
+  name: z.string(),
+});
+
+person.parse({
+  name: "bob dylan",
+  extraKey: 61,
+});
+// => { name: "bob dylan" }
+// extraKey가 제거됨
+```
+
+LANGUAGE: typescript
+CODE:
+```
+person.passthrough().parse({
+  name: "bob dylan",
+  extraKey: 61,
+});
+// => { name: "bob dylan", extraKey: 61 }
+```
+
+LANGUAGE: typescript
+CODE:
+```
+const person = z
+  .object({
+    name: z.string(),
+  })
+  .strict();
+
+person.parse({
+  name: "bob dylan",
+  extraKey: 61,
+});
+// => ZodError 발생
+```
+
+LANGUAGE: typescript
+CODE:
+```
+const person = z
+  .object({
+    name: z.string(),
+  })
+  .catchall(z.number());
+
+person.parse({
+  name: "bob dylan",
+  validExtraKey: 61, // 정상 동작
+});
+
+person.parse({
+  name: "bob dylan",
+  validExtraKey: false, // 실패
+});
+// => ZodError 발생
+```
+
+----------------------------------------
+
+TITLE: Creating Enum Schemas with Zod
+DESCRIPTION: Shows how to create enum schemas that validate against a fixed set of string literal values using z.enum().
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_21
+
+LANGUAGE: typescript
+CODE:
+```
+const FishEnum = z.enum(["Salmon", "Tuna", "Trout"]);
+type FishEnum = z.infer<typeof FishEnum>;
+// 'Salmon' | 'Tuna' | 'Trout'
+```
+
+----------------------------------------
+
+TITLE: Accessing Discriminated Union Options in Zod
+DESCRIPTION: Shows how to access the options of a discriminated union and how to combine multiple discriminated unions by merging their options.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_9
+
+LANGUAGE: typescript
+CODE:
+```
+myUnion.options; // [ZodObject<...>, ZodObject<...>]
+```
+
+----------------------------------------
+
+TITLE: Using .brand Method for Nominal Typing in Zod
+DESCRIPTION: The .brand method simulates nominal typing in TypeScript by attaching a brand to the inferred type. This allows for type-level distinctions between structurally identical types.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_108
+
+LANGUAGE: typescript
+CODE:
+```
+const Cat = z.object({ name: z.string() }).brand<"Cat">();
+type Cat = z.infer<typeof Cat>;
+
+const petCat = (cat: Cat) => {};
+
+// this works
+const simba = Cat.parse({ name: "simba" });
+petCat(simba);
+
+// this doesn't
+petCat({ name: "fido" });
+```
+
+----------------------------------------
+
+TITLE: Accessing Native Enum Values in TypeScript
+DESCRIPTION: Shows how to access the underlying enum object using the .enum property of a native enum schema.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_45
+
+LANGUAGE: typescript
+CODE:
+```
+FruitEnum.enum.Apple; // "apple"
+```
+
+----------------------------------------
+
+TITLE: 배열 스키마 정의 및 메서드 활용
+DESCRIPTION: 배열 스키마를 정의하고 .element, .nonempty, .min, .max, .length 메서드를 사용하여 배열 제약조건을 지정하는 방법을 보여줍니다.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_28
+
+LANGUAGE: typescript
+CODE:
+```
+const stringArray = z.array(z.string());
+
+// 동일한 표현
+const stringArray = z.string().array();
+```
+
+LANGUAGE: typescript
+CODE:
+```
+z.string().optional().array(); // (string | undefined)[]
+z.string().array().optional(); // string[] | undefined
+```
+
+LANGUAGE: typescript
+CODE:
+```
+stringArray.element; // => string 스키마
+```
+
+LANGUAGE: typescript
+CODE:
+```
+const nonEmptyStrings = z.string().array().nonempty();
+// 추론된 타입은 이제 다음과 같습니다.
+// [string, ...string[]]
+
+nonEmptyStrings.parse([]); // 오류 발생: "배열이 비어 있을 수 없습니다"
+nonEmptyStrings.parse(["Ariana Grande"]); // 통과
+```
+
+LANGUAGE: typescript
+CODE:
+```
+// 커스텀 오류 메시지 지정
+const nonEmptyStrings = z.string().array().nonempty({
+  message: "비어 있을 수 없습니다!",
+});
+```
+
+LANGUAGE: typescript
+CODE:
+```
+z.string().array().min(5); // 배열은 5개 이상의 항목을 포함해야 함
+z.string().array().max(5); // 배열은 5개 이하의 항목을 포함해야 함
+z.string().array().length(5); // 배열은 정확히 5개의 항목을 포함해야 함
+```
+
+----------------------------------------
+
+TITLE: Creating Readonly Types with readonly Method
+DESCRIPTION: The readonly method creates immutable versions of schemas by applying Object.freeze() to parsed results and marking the inferred type with TypeScript's readonly modifier.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_58
+
+LANGUAGE: typescript
+CODE:
+```
+const schema = z.object({ name: z.string() }).readonly();
+type schema = z.infer<typeof schema>;
+// Readonly
+
+const result = schema.parse({ name: "fido" });
+result.name = "simba"; // 오류 발생
+```
+
+----------------------------------------
+
+TITLE: Post-Processing Zod Error Issues in TypeScript
+DESCRIPTION: Demonstrates using the mapping function parameter of flatten() to transform ZodIssues into custom error objects. This is useful for integrating Zod with form libraries or adding additional context to errors.
+SOURCE: https://github.com/colinhacks/zod/blob/main/ERROR_HANDLING.md#2025-04-18_snippet_17
+
+LANGUAGE: typescript
+CODE:
+```
+result.error.flatten((issue: ZodIssue) => ({
+  message: issue.message,
+  errorCode: issue.code,
+}));
+/*
+  {
+    formErrors: [],
+    fieldErrors: {
+      name: [
+        {message: "Expected string, received null", errorCode: "invalid_type"}
+      ]
+      contactInfo: [
+        {message: "Invalid email", errorCode: "invalid_string"}
+      ]
+    },
+  }
+*/
+```
+
+----------------------------------------
+
+TITLE: Defining Primitive Type Schemas in Zod
+DESCRIPTION: Overview of available primitive type schemas in Zod including basic values, empty types, catch-all types, and the never type for type validation.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_5
+
+LANGUAGE: typescript
+CODE:
+```
+import { z } from "zod";
+
+// 기본 값
+z.string();
+z.number();
+z.bigint();
+z.boolean();
+z.date();
+z.symbol();
+
+// 빈 타입
+z.undefined();
+z.null();
+z.void(); // undefined를 허용
+
+// 모든 타입 허용
+// 어떤 값이든 허용
+z.any();
+z.unknown();
+
+// never 타입
+// 어떤 값도 허용하지 않음
+z.never();
+```
+
+----------------------------------------
+
+TITLE: Using .pipe Method for Validation Pipelines in Zod
+DESCRIPTION: The .pipe method allows chaining schemas into validation pipelines. It's useful for validating the result of a transformation.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_112
+
+LANGUAGE: typescript
+CODE:
+```
+z.string()
+  .transform((val) => val.length)
+  .pipe(z.number().min(5));
+```
+
+----------------------------------------
+
+TITLE: Adding Schema Descriptions with describe Method
+DESCRIPTION: The describe method adds a description property to the schema, which can be useful for documentation purposes or when generating JSON schema with third-party libraries.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_54
+
+LANGUAGE: typescript
+CODE:
+```
+const documentedString = z
+  .string()
+  .describe("유용한 텍스트 조각입니다. 어떻게 사용할지 알고 있다면 말이죠.");
+documentedString.description; // 유용한 텍스트 조각…
+```
+
+----------------------------------------
+
+TITLE: BigInt Validation Methods in Zod
+DESCRIPTION: A list of bigint-specific validation methods including range checks, sign checks, and divisibility checks.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_29
+
+LANGUAGE: typescript
+CODE:
+```
+z.bigint().gt(5n);
+z.bigint().gte(5n); // alias `.min(5n)`
+z.bigint().lt(5n);
+z.bigint().lte(5n); // alias `.max(5n)`
+
+z.bigint().positive(); // > 0n
+z.bigint().nonnegative(); // >= 0n
+z.bigint().negative(); // < 0n
+z.bigint().nonpositive(); // <= 0n
+
+z.bigint().multipleOf(5n); // Evenly divisible by 5n.
+```
+
+----------------------------------------
+
+TITLE: Creating Literal Type Schemas in Zod
+DESCRIPTION: Examples of defining literal schemas in Zod for various types including strings, numbers, bigints, booleans, and symbols.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_11
+
+LANGUAGE: typescript
+CODE:
+```
+const tuna = z.literal("tuna");
+const twelve = z.literal(12);
+const twobig = z.literal(2n); // bigint 리터럴
+const tru = z.literal(true);
+
+const terrificSymbol = Symbol("terrific");
+const terrific = z.literal(terrificSymbol);
+
+// 리터럴 값 가져오기
+tuna.value; // "tuna"
+```
+
+----------------------------------------
+
+TITLE: Basic Data Transformation Using transform Method in Zod
+DESCRIPTION: The transform method allows for changing the data after parsing. This example converts a string to its length, resulting in a number value.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_47
+
+LANGUAGE: typescript
+CODE:
+```
+const stringToNumber = z.string().transform((val) => val.length);
+
+stringToNumber.parse("string"); // => 6
+```
+
+----------------------------------------
+
+TITLE: Array Schema Definition in TypeScript
+DESCRIPTION: Shows how to define array schemas in Zod using both direct and chained methods. Includes examples of array validation methods like nonempty, min, max, and length constraints.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_68
+
+LANGUAGE: typescript
+CODE:
+```
+const stringArray = z.array(z.string());
+
+// equivalent
+const stringArray = z.string().array();
+```
+
+----------------------------------------
+
+TITLE: Complex Array Validation with SuperRefine
+DESCRIPTION: Advanced validation using superRefine to check array length and uniqueness with custom error messages.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_95
+
+LANGUAGE: typescript
+CODE:
+```
+const Strings = z.array(z.string()).superRefine((val, ctx) => {
+  if (val.length > 3) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.too_big,
+      maximum: 3,
+      type: "array",
+      inclusive: true,
+      message: "Too many items 😡",
+    });
+  }
+
+  if (val.length !== new Set(val).size) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `No duplicates allowed.`,
+    });
+  }
+});
+```
+
+----------------------------------------
+
+TITLE: Combining String Methods with Coercion in Zod
+DESCRIPTION: Example showing how coercion can be combined with other validation methods in Zod, demonstrating the flexibility of the schema validation chain.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_8
+
+LANGUAGE: typescript
+CODE:
+```
+z.coerce.string().email().min(5);
+```
+
+----------------------------------------
+
+TITLE: Using .nullable() Method on Existing Schemas in TypeScript
+DESCRIPTION: Demonstrates using the .nullable() method directly on a schema to make it accept null values, with type inference.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_50
+
+LANGUAGE: typescript
+CODE:
+```
+const E = z.string().nullable(); // equivalent to nullableString
+type E = z.infer<typeof E>; // string | null
+```
+
+----------------------------------------
+
+TITLE: Examples of Different Type Coercions in Zod
+DESCRIPTION: Demonstration of how different types are coerced in Zod, showing the results of string coercion for various input types.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_7
+
+LANGUAGE: typescript
+CODE:
+```
+schema.parse(12); // => "12"
+schema.parse(true); // => "true"
+schema.parse(undefined); // => "undefined"
+schema.parse(null); // => "null"
+```
+
+----------------------------------------
+
+TITLE: Combining Multiple Transforms and Refinements in Sequence
+DESCRIPTION: This example demonstrates how transforms and refinements can be chained in sequence, with each operation applied in the order declared, allowing for complex validation and transformation pipelines.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_50
+
+LANGUAGE: typescript
+CODE:
+```
+const nameToGreeting = z
+  .string()
+  .transform((val) => val.toUpperCase()) // 값을 대문자로 변환
+  .refine((val) => val.length > 15) // 길이가 15를 초과하는지 검증
+  .transform((val) => `Hello ${val}`) // 값 앞에 "Hello"를 추가
+  .refine((val) => val.indexOf("!") === -1); // 값에 "!"가 포함되지 않았는지 검증
+```
+
+----------------------------------------
+
+TITLE: Type Narrowing with Zod Intersections
+DESCRIPTION: Demonstrates how intersection types can narrow down unions to their common types, resulting in a more specific type.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_29
+
+LANGUAGE: typescript
+CODE:
+```
+const a = z.union([z.number(), z.string()]);
+const b = z.union([z.number(), z.boolean()]);
+const c = z.intersection(a, b);
+
+type c = z.infer<typeof c>; // => number
+```
+
+----------------------------------------
+
+TITLE: Early Termination in Validation with superRefine in TypeScript
+DESCRIPTION: This example demonstrates how to use early termination in superRefine validations by setting the fatal flag in ctx.addIssue and returning z.NEVER, which prevents subsequent validations from running.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_45
+
+LANGUAGE: typescript
+CODE:
+```
+const schema = z.number().superRefine((val, ctx) => {
+  if (val < 10) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "10 이상이어야 합니다",
+      fatal: true,
+    });
+
+    return z.NEVER;
+  }
+
+  if (val !== 12) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "12여야 합니다",
+    });
+  }
+});
+```
+
+----------------------------------------
+
+TITLE: Creating a Simple String Schema in Zod
+DESCRIPTION: Basic example of creating and using a string schema in Zod, including parsing and safe parsing functionality to validate string data.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_3
+
+LANGUAGE: typescript
+CODE:
+```
+import { z } from "zod";
+
+// 문자열을 위한 스키마 생성
+const mySchema = z.string();
+
+// 파싱
+mySchema.parse("tuna"); // => "tuna"
+mySchema.parse(12); // => ZodError 발생
+
+// "안전한" 파싱 (검증 실패 시 에러를 던지지 않음)
+mySchema.safeParse("tuna"); // => { success: true; data: "tuna" }
+mySchema.safeParse(12); // => { success: false; error: ZodError }
+```
+
+----------------------------------------
+
+TITLE: Customizing String Schema Error Messages in Zod
+DESCRIPTION: Examples of how to customize error messages for string schemas in Zod, both when creating the schema and when applying validation methods.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_KO.md#2025-04-18_snippet_13
+
+LANGUAGE: typescript
+CODE:
+```
+const name = z.string({
+  required_error: "이름은 필수입니다",
+  invalid_type_error: "이름은 문자열이어야 합니다",
+});
+```
+
+----------------------------------------
+
+TITLE: Creating a ZodError Instance in TypeScript
+DESCRIPTION: Shows how to import Zod and create a new instance of ZodError with an empty array of issues.
+SOURCE: https://github.com/colinhacks/zod/blob/main/ERROR_HANDLING.md#2025-04-18_snippet_1
+
+LANGUAGE: typescript
+CODE:
+```
+import * as z from "zod";
+
+const myError = new z.ZodError([]);
+```
+
+----------------------------------------
+
+TITLE: Validating Const Objects with z.nativeEnum() in TypeScript
+DESCRIPTION: Demonstrates how to use z.nativeEnum() with 'as const' objects to create enum schemas, showing valid and invalid values.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_44
+
+LANGUAGE: typescript
+CODE:
+```
+const Fruits = {
+  Apple: "apple",
+  Banana: "banana",
+  Cantaloupe: 3,
+} as const;
+
+const FruitEnum = z.nativeEnum(Fruits);
+type FruitEnum = z.infer<typeof FruitEnum>; // "apple" | "banana" | 3
+
+FruitEnum.parse("apple"); // passes
+FruitEnum.parse("banana"); // passes
+FruitEnum.parse(3); // passes
+FruitEnum.parse("Cantaloupe"); // fails
+```
+
+----------------------------------------
+
+TITLE: Creating Set Schemas with Zod
+DESCRIPTION: Demonstrates how to validate JavaScript Set objects containing elements of a specific type using z.set().
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_20
+
+LANGUAGE: typescript
+CODE:
+```
+const numberSet = z.set(z.number());
+type numberSet = z.infer<typeof numberSet>;
+// Set<number>
+```
+
+----------------------------------------
+
+TITLE: Handling Root-Level Validation Errors in Zod with TypeScript
+DESCRIPTION: Shows how flatten() handles errors that occur at the root level of the schema, such as when an entire object is invalid. These errors appear in the formErrors array rather than fieldErrors.
+SOURCE: https://github.com/colinhacks/zod/blob/main/ERROR_HANDLING.md#2025-04-18_snippet_16
+
+LANGUAGE: typescript
+CODE:
+```
+const result = FormData.safeParse(null);
+if (!result.success) {
+  result.error.flatten();
+  /*  
+    {
+      formErrors: ["Invalid input: expected object, received null"],
+      fieldErrors: {}
+    }  
+  */
+}
+```
+
+----------------------------------------
+
+TITLE: Customizing Number Schema Error Messages in Zod
+DESCRIPTION: Shows how to customize error messages when creating a number schema.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_26
+
+LANGUAGE: typescript
+CODE:
+```
+const age = z.number({
+  required_error: "Age is required",
+  invalid_type_error: "Age must be a number",
+});
+```
+
+----------------------------------------
+
+TITLE: Configuring TSConfig for Zod
+DESCRIPTION: Required TypeScript configuration for using Zod, specifically enabling strict mode in tsconfig.json.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_4
+
+LANGUAGE: typescript
+CODE:
+```
+// tsconfig.json
+{
+  // ...
+  "compilerOptions": {
+    // ...
+    "strict": true
+  }
+}
+```
+
+----------------------------------------
+
+TITLE: Allowing Local Datetime Format in Zod
+DESCRIPTION: Configuring datetime validation to allow unqualified (timezone-less) datetimes using the local flag.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README.md#2025-04-18_snippet_17
+
+LANGUAGE: typescript
+CODE:
+```
+const schema = z.string().datetime({ local: true });
+schema.parse("2020-01-01T00:00:00"); // pass
+```
+
+----------------------------------------
+
+TITLE: Retrieving Enum Options in Zod
+DESCRIPTION: Shows how to access the available options of an enum schema as a tuple using the .options property.
+SOURCE: https://github.com/colinhacks/zod/blob/main/README_ZH.md#2025-04-18_snippet_24
+
+LANGUAGE: typescript
+CODE:
+```
+FishEnum.options; // ["Salmon", "Tuna", "Trout"]);
+```
