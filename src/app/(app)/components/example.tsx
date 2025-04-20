@@ -1,7 +1,7 @@
 "use client"
 
 import React from 'react'
-import { Button } from '../elements/button'
+import { Button } from '../../../components/elements/button'
 import { useHello } from '@/hooks/example/example'
 import { redirect } from 'next/navigation'
 

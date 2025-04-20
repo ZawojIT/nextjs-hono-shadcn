@@ -1,4 +1,4 @@
-import Example from "@/components/templates/example";
+import Example from "@/app/(app)/components/example";
 
 export default function Home() {
   return (
