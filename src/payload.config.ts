@@ -26,14 +26,16 @@ export default buildConfig({
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
+  localization: {
+    defaultLocale: 'en',
+    locales: ['en', 'pl'],
+  },
   db: postgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URI || '',
+      // ssl: getSSLConfig(process.env.SSL_CERT_PATH, process.env.SSL_KEY_PATH),
     },
   }),
   sharp,
-  plugins: [
-    payloadCloudPlugin(),
-    // storage-adapter-placeholder
-  ],
+  plugins: [payloadCloudPlugin()],
 })
