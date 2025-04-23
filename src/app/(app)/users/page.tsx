@@ -1,10 +1,11 @@
-import { UserForm } from "./components/ui/UserForm";
+import { AppLayout } from '../components/AppLayout'
 
-export default function ContactPage() {
+export default function UsersListPage() {
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="mb-4 text-2xl font-bold">Formularz kontaktowy</h1>
-      <UserForm />
+    <div className="rounded-lg border p-6">
+      <p className="text-center text-muted-foreground">
+        User list will be displayed here
+      </p>
     </div>
   )
 }

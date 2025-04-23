@@ -1,5 +1,8 @@
 export default function Home() {
   return (
-    <div className="grid min-h-screen grid-rows-[20px_1fr_20px] items-center justify-items-center gap-16 p-8 pb-20 font-[family-name:var(--font-geist-sans)] sm:p-20"></div>
+    <div className="mt-12 text-center">
+      <h1 className="text-4xl font-bold">PayloadCMS + Zod + Hono + Shadcn</h1>
+      <p className="mt-4 text-xl">Use the navigation above to get started</p>
+    </div>
   )
 }
