@@ -64,7 +64,8 @@ pnpm generate:types
 - [shadcn/ui Documentation](https://ui.shadcn.com/docs)
 - [PayloadCMS Documentation](https://payloadcms.com/docs)
 
-
 ## Left to do
-- [ ] Server side tanstack query provider
+
 - [ ] File upload example
+- [ ] i18n support
+- [ ] Error handling

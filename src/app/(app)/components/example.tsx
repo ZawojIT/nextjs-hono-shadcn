@@ -1,32 +1,37 @@
-"use client"
+'use client'
 
-import React from 'react'
-import { Button } from '../../../components/elements/button'
-import { useHello } from '@/hooks/example/example'
-import { redirect } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
+import { useParams } from 'next/navigation'
+import { Params } from '../example/[id]/page'
+import { createExamplesClientService } from '@/hooks/examples/examples.client'
+import { examplesQueryKeys } from '@/hooks/examples/examples.keys'
 
-const Example = () => {
-  const { data, isLoading, error } = useHello()
+export function Example() {
+  const params = useParams<Params>()
+  const service = createExamplesClientService()
+
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: examplesQueryKeys.getExample(params),
+    queryFn: (ctx) => service.getExample(params, ctx),
+  })
+
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
+
+  if (!data) {
+    return <div>Example not found</div>
+  }
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      {isLoading && <p>Loading...</p>}
-      
-      {error && <p className="text-red-500">Error: {error.message}</p>}
-      
-      {data && (
-        <div className="text-center">
-          <p className="mb-4">{data.message}</p>
-          <Button 
-            className="mt-4"
-            onClick={() => redirect('/users')}
-          >
-            Kliknij mnie!
-          </Button>
-        </div>
-      )}
-    </div>
+    <article className="my-4 text-center">
+      <div>Example {data.id}</div>
+      <button
+        className="bg-slate-200 px-2 text-sm font-normal"
+        onClick={() => void refetch()}
+      >
+        Refetch
+      </button>
+    </article>
   )
 }
-
-export default Example
