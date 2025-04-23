@@ -1,18 +1,28 @@
-"use client"
+'use client'
 
 import { Button } from '@/components/elements/button'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/elements/form'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/elements/form'
 import { Input } from '@/components/elements/input'
 import { Textarea } from '@/components/elements/textarea'
-import { UserFormData, userFormSchema } from '@/hooks/users/schema'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Skeleton } from '@/components/elements/skeleton'
-import { useUserFormMutation } from '@/hooks/users/query'
+import { usersSchemas, useCreateUser } from '@/hooks/users'
+import { toast } from '@/hooks/shadcn/use-toast'
+import { z } from 'zod'
+
+type UserFormInput = z.infer<typeof usersSchemas.createUser.input>
 
 export function UserForm() {
-  const form = useForm<UserFormData>({
-    resolver: zodResolver(userFormSchema),
+  const form = useForm<UserFormInput>({
+    resolver: zodResolver(usersSchemas.createUser.input),
     defaultValues: {
       name: '',
       email: '',
@@ -20,18 +30,25 @@ export function UserForm() {
     },
   })
 
-  const mutation = useUserFormMutation({
-    onSuccess: () => {
-      form.reset()
-      alert('Formularz został wysłany pomyślnie!')
-    },
-    onError: (error) => {
-      alert(error.message)
-    },
-  })
+  const mutation = useCreateUser()
 
-  const onSubmit = (data: UserFormData) => {
-    mutation.mutate(data)
+  const onSubmit = (data: UserFormInput) => {
+    mutation.mutate(data, {
+      onSuccess: () => {
+        form.reset()
+        toast({
+          title: 'Success',
+          description: 'Form submitted successfully!',
+        })
+      },
+      onError: (error) => {
+        toast({
+          title: 'Error',
+          description: error.message,
+          variant: 'destructive',
+        })
+      },
+    })
   }
 
   return (
@@ -52,7 +69,7 @@ export function UserForm() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Imię</FormLabel>
+                    <FormLabel>Name</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -80,7 +97,7 @@ export function UserForm() {
                 name="message"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Wiadomość</FormLabel>
+                    <FormLabel>Message</FormLabel>
                     <FormControl>
                       <Textarea {...field} />
                     </FormControl>
@@ -90,7 +107,7 @@ export function UserForm() {
               />
 
               <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? 'Wysyłanie...' : 'Wyślij'}
+                {mutation.isPending ? 'Sending...' : 'Send'}
               </Button>
             </>
           )}
@@ -99,7 +116,7 @@ export function UserForm() {
 
       {mutation.data && (
         <div className="mt-6 rounded-lg border p-4">
-          <h3 className="mb-2 font-semibold">Dane z serwera:</h3>
+          <h3 className="mb-2 font-semibold">Server response:</h3>
           <pre className="rounded bg-gray-100 p-2">
             {JSON.stringify(mutation.data, null, 2)}
           </pre>
