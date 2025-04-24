@@ -66,6 +66,6 @@ pnpm generate:types
 
 ## Left to do
 
-- [ ] File upload example
+- [ ] Create example posts
 - [ ] i18n support
 - [ ] Error handling
