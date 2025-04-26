@@ -13,13 +13,13 @@ import { Input } from '@/components/elements/input'
 import { Label } from '@/components/elements/label'
 import { useUploadMedia } from '@/hooks/upload/upload'
 import { useToast } from '@/hooks/shadcn/use-toast'
-import { toast as sonnerToast } from 'sonner'
 
 interface ImageUploadProps {
   onUploadSuccess: (mediaData: { id: number; url: string }) => void
   onUploadError?: (error: unknown) => void
   defaultPreview?: string
   hideUploadButton?: boolean
+  onFileSelected?: () => void
 }
 
 export type ImageUploadRef = {
@@ -33,6 +33,7 @@ export const ImageUpload = forwardRef<ImageUploadRef, ImageUploadProps>(
       onUploadError,
       defaultPreview,
       hideUploadButton = false,
+      onFileSelected,
     },
     ref
   ) {
@@ -52,6 +53,11 @@ export const ImageUpload = forwardRef<ImageUploadRef, ImageUploadProps>(
       // Show preview
       const objectUrl = URL.createObjectURL(file)
       setPreview(objectUrl)
+
+      // Notify parent that a file has been selected
+      if (onFileSelected) {
+        onFileSelected();
+      }
 
       // Clean up the object URL when component unmounts
       return () => URL.revokeObjectURL(objectUrl)
@@ -77,11 +83,15 @@ export const ImageUpload = forwardRef<ImageUploadRef, ImageUploadProps>(
             { file, alt },
             {
               onSuccess: (data) => {
+                console.log('Upload mutation success data:', data);
+                // Extract ID and URL from the response
                 onUploadSuccess({
                   id: data.id,
                   url: data.url,
                 })
-                sonnerToast.success('File uploaded successfully!')
+                toast({
+                  title: 'File uploaded successfully!',
+                })
                 resolve(true)
               },
               onError: (error) => {

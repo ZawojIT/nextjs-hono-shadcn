@@ -6,7 +6,7 @@ export const Posts: CollectionConfig = {
     useAsTitle: 'title',
   },
   access: {
-    read: () => true,
+    read: (ctx) => true,
     // Only for demo purposes
     create: () => true,
     update: () => true,
@@ -27,7 +27,6 @@ export const Posts: CollectionConfig = {
       name: 'image',
       type: 'upload',
       relationTo: 'media',
-      required: true,
     },
   ],
 }

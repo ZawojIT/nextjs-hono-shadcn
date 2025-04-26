@@ -55,14 +55,21 @@ export function PostsList() {
               href={`/posts/${post.id}`}
               className="block overflow-hidden rounded-md border transition-shadow hover:shadow-md"
             >
-              <div className="relative h-48 w-full">
-                <Image
-                  src={post.image.url}
-                  alt={post.image.alt}
-                  fill
-                  className="object-cover"
-                />
-              </div>
+              {post.image && (
+                <div className="relative h-48 w-full">
+                  <Image
+                    src={post.image.url}
+                    alt={post.image.alt || post.title}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              )}
+              {!post.image && (
+                <div className="relative h-48 w-full bg-gray-200 flex items-center justify-center">
+                  <span className="text-gray-500">No image</span>
+                </div>
+              )}
               <div className="p-4">
                 <h3 className="truncate text-lg font-semibold">{post.title}</h3>
                 <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">

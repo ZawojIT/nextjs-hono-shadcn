@@ -45,15 +45,21 @@ export function PostDetail({ id }: PostDetailProps) {
 
       {post && (
         <div className="mx-auto max-w-3xl">
-          <div className="relative mb-6 h-64 w-full overflow-hidden rounded-lg sm:h-96">
-            <Image
-              src={post.image.url}
-              alt={post.image.alt}
-              fill
-              className="object-cover"
-              priority
-            />
-          </div>
+          {post.image ? (
+            <div className="relative mb-6 h-64 w-full overflow-hidden rounded-lg sm:h-96">
+              <Image
+                src={post.image.url}
+                alt={post.image.alt || post.title}
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+          ) : (
+            <div className="relative mb-6 h-64 w-full overflow-hidden rounded-lg bg-gray-200 flex items-center justify-center sm:h-96">
+              <span className="text-gray-500">No image</span>
+            </div>
+          )}
 
           <h1 className="mb-4 text-3xl font-bold">{post.title}</h1>
 

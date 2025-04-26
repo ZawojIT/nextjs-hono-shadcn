@@ -28,17 +28,38 @@ export const useCreatePost = () => {
     mutationFn: async (
       data: PostsSchemas['createPost']['input']
     ): Promise<PostsSchemas['createPost']['output']> => {
+      console.log('Mutation function called with data:', data)
+      
+      // Using the standard PayloadCMS API endpoint format
+      // PayloadCMS uses /api/{collectionSlug} for its REST API
       const response = await fetch('/api/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        // Ensure we're sending the data in the format PayloadCMS expects
+        // For relationships like 'image', PayloadCMS might expect the ID format
+        // to be different than what we have in our schema
+        body: JSON.stringify({
+          title: data.title,
+          description: data.description,
+          image: data.image, // This should be the media ID
+        }),
+        credentials: 'include',
       })
 
+      console.log('API response status:', response.status)
+      
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Failed to create post')
+        let errorMessage = 'Failed to create post';
+        try {
+          const error = await response.json();
+          console.error('API error response:', error);
+          errorMessage = error.message || errorMessage;
+        } catch (e) {
+          console.error('Failed to parse error response:', e);
+        }
+        throw new Error(errorMessage);
       }
 
       return response.json()

@@ -160,7 +160,7 @@ export interface Post {
   id: number;
   title: string;
   description: string;
-  image: number | Media;
+  image?: (number | null) | Media;
   updatedAt: string;
   createdAt: string;
 }

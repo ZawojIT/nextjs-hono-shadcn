@@ -27,7 +27,12 @@ export const useUploadMedia = () => {
         throw new Error(error.message || 'Failed to upload file')
       }
 
-      return response.json()
+      const responseData = await response.json()
+      console.log('Media upload response:', responseData);
+      
+      // Handle both direct response and doc-wrapped response
+      const mediaData = responseData.doc || responseData;
+      return mediaData;
     },
   })
 }

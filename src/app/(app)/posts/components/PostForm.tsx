@@ -1,14 +1,13 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/elements/button'
 import { Input } from '@/components/elements/input'
 import { Label } from '@/components/elements/label'
-import { ImageUpload, ImageUploadRef } from '../../components/ImageUpload'
 import { useCreatePost } from '@/hooks/posts/posts'
 import { useToast } from '@/hooks/shadcn/use-toast'
-import { toast as sonnerToast } from 'sonner'
+import { ImageUpload, ImageUploadRef } from '@/app/(app)/components/ImageUpload'
 
 export function PostForm() {
   const router = useRouter()
@@ -18,20 +17,27 @@ export function PostForm() {
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [uploadedImage, setUploadedImage] = useState<{
-    id: number
-    url: string
-  } | null>(null)
+  const [isFileSelected, setIsFileSelected] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Debug logging for mutation state
+  useEffect(() => {
+    console.log('CreatePostMutation state:', {
+      isPending: createPostMutation.isPending,
+      isError: createPostMutation.isError,
+      error: createPostMutation.error,
+    })
+  }, [createPostMutation.isPending, createPostMutation.isError, createPostMutation.error])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
+    console.log('Form submission started')
 
     if (!title || !description) {
       toast({
         title: 'Validation Error',
-        description: 'Please fill all fields',
+        description: 'Please fill all required fields',
         variant: 'destructive',
       })
       setIsSubmitting(false)
@@ -39,48 +45,68 @@ export function PostForm() {
     }
 
     try {
-      let imageId = uploadedImage?.id
-
-      // If image not already uploaded, try to upload it now
-      if (!imageId && imageUploadRef.current) {
-        const uploadResult = await imageUploadRef.current.handleUpload()
-        if (!uploadResult) {
-          // Image upload failed, abort post creation
-          setIsSubmitting(false)
-          return
+      // First upload the image if a file is selected
+      let imageId = null;
+      
+      if (isFileSelected && imageUploadRef.current) {
+        console.log('Uploading image as part of form submission')
+        const uploadSuccess = await imageUploadRef.current.handleUpload();
+        
+        if (!uploadSuccess) {
+          toast({
+            title: 'Image Upload Failed',
+            description: 'Unable to upload the image',
+            variant: 'destructive',
+          });
+          setIsSubmitting(false);
+          return;
         }
-        // The uploaded image ID will be set by the onUploadSuccess callback
-        // which updates the uploadedImage state
       }
 
-      // Wait a bit to ensure state is updated with the uploaded image
-      if (!imageId && uploadedImage?.id) {
-        imageId = uploadedImage.id
-      }
+      // The actual image ID will be provided via the onUploadSuccess callback
+      // which will be called by the ImageUpload component after successful upload
 
-      if (!imageId) {
-        toast({
-          title: 'Missing Image',
-          description: 'Please upload an image for your post',
-          variant: 'destructive',
-        })
-        setIsSubmitting(false)
-        return
-      }
+    } catch (error) {
+      console.error('Error during image upload:', error)
+      toast({
+        title: 'Image Upload Failed',
+        description: 'An unexpected error occurred during image upload',
+        variant: 'destructive',
+      })
+      setIsSubmitting(false)
+      return
+    }
+  }
+
+  const handleImageUploadSuccess = (mediaData: { id: number; url: string }) => {
+    console.log('Image uploaded successfully:', mediaData);
+    
+    // Now proceed with post creation using the uploaded image
+    createPost(mediaData.id);
+  }
+  
+  const createPost = async (imageId?: number) => {
+    try {
+      const postData = {
+        title,
+        description,
+        ...(imageId ? { image: imageId } : {})
+      };
+      
+      console.log('Creating post with data:', postData);
 
       await createPostMutation.mutateAsync(
-        {
-          title,
-          description,
-          image: imageId,
-        },
+        postData,
         {
           onSuccess: () => {
-            sonnerToast.success('Post created successfully!')
+            console.log('Post created successfully')
+            toast({
+              title: 'Post created successfully!',
+            })
             // Reset form
             setTitle('')
             setDescription('')
-            setUploadedImage(null)
+            setIsFileSelected(false)
             // Redirect to posts list
             router.push('/posts')
           },
@@ -94,6 +120,7 @@ export function PostForm() {
                   : 'An unexpected error occurred',
               variant: 'destructive',
             })
+            setIsSubmitting(false);
           },
         }
       )
@@ -104,9 +131,12 @@ export function PostForm() {
         description: 'An unexpected error occurred',
         variant: 'destructive',
       })
-    } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
+  }
+
+  const handleFileSelected = () => {
+    setIsFileSelected(true);
   }
 
   return (
@@ -134,30 +164,22 @@ export function PostForm() {
         />
       </div>
 
-      <div className="rounded-md border p-4">
-        <h3 className="mb-2 font-medium">Upload Image</h3>
+      <div className="grid w-full items-center gap-1.5">
         <ImageUpload
           ref={imageUploadRef}
-          onUploadSuccess={(mediaData) => setUploadedImage(mediaData)}
-          onUploadError={(error) => {
-            console.error('Upload error in form:', error)
-            // The error toast is already shown in the ImageUpload component
-          }}
-          defaultPreview={uploadedImage?.url}
+          onUploadSuccess={handleImageUploadSuccess}
           hideUploadButton={true}
+          onFileSelected={handleFileSelected}
         />
       </div>
-
-      {uploadedImage && (
-        <div className="rounded-md border bg-green-50 p-2">
-          <p className="text-sm text-green-600">Image uploaded successfully!</p>
-        </div>
-      )}
 
       <Button
         type="submit"
         disabled={
-          isSubmitting || createPostMutation.isPending || !title || !description
+          isSubmitting || 
+          createPostMutation.isPending || 
+          !title || 
+          !description
         }
         className="w-full"
       >
@@ -168,3 +190,7 @@ export function PostForm() {
     </form>
   )
 }
+
+
+
+

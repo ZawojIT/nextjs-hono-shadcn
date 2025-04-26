@@ -63,7 +63,7 @@ export const postsSchemas = {
     input: z.object({
       title: z.string().min(1, 'Title is required'),
       description: z.string().min(1, 'Description is required'),
-      image: z.number(), // Media ID
+      image: z.number().optional().nullable(), // Media ID, now optional and can be null
     }),
     output: z
       .object({
@@ -74,7 +74,7 @@ export const postsSchemas = {
           id: z.number(),
           url: z.string().url(),
           alt: z.string(),
-        }),
+        }).nullable().optional(),
         createdAt: z.string().datetime(),
         updatedAt: z.string().datetime(),
       })
