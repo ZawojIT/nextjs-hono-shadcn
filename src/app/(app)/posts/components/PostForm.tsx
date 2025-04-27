@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/elements/button'
 import { Input } from '@/components/elements/input'
@@ -20,15 +20,6 @@ export function PostForm() {
   const [isFileSelected, setIsFileSelected] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Debug logging for mutation state
-  useEffect(() => {
-    console.log('CreatePostMutation state:', {
-      isPending: createPostMutation.isPending,
-      isError: createPostMutation.isError,
-      error: createPostMutation.error,
-    })
-  }, [createPostMutation.isPending, createPostMutation.isError, createPostMutation.error])
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
@@ -45,27 +36,23 @@ export function PostForm() {
     }
 
     try {
-      // First upload the image if a file is selected
-      let imageId = null;
-      
       if (isFileSelected && imageUploadRef.current) {
         console.log('Uploading image as part of form submission')
-        const uploadSuccess = await imageUploadRef.current.handleUpload();
-        
+        const uploadSuccess = await imageUploadRef.current.handleUpload()
+
         if (!uploadSuccess) {
           toast({
             title: 'Image Upload Failed',
             description: 'Unable to upload the image',
             variant: 'destructive',
-          });
-          setIsSubmitting(false);
-          return;
+          })
+          setIsSubmitting(false)
+          return
         }
       }
 
       // The actual image ID will be provided via the onUploadSuccess callback
       // which will be called by the ImageUpload component after successful upload
-
     } catch (error) {
       console.error('Error during image upload:', error)
       toast({
@@ -79,51 +66,48 @@ export function PostForm() {
   }
 
   const handleImageUploadSuccess = (mediaData: { id: number; url: string }) => {
-    console.log('Image uploaded successfully:', mediaData);
-    
+    console.log('Image uploaded successfully:', mediaData)
+
     // Now proceed with post creation using the uploaded image
-    createPost(mediaData.id);
+    createPost(mediaData.id)
   }
-  
+
   const createPost = async (imageId?: number) => {
     try {
       const postData = {
         title,
         description,
-        ...(imageId ? { image: imageId } : {})
-      };
-      
-      console.log('Creating post with data:', postData);
+        ...(imageId ? { image: imageId } : {}),
+      }
 
-      await createPostMutation.mutateAsync(
-        postData,
-        {
-          onSuccess: () => {
-            console.log('Post created successfully')
-            toast({
-              title: 'Post created successfully!',
-            })
-            // Reset form
-            setTitle('')
-            setDescription('')
-            setIsFileSelected(false)
-            // Redirect to posts list
-            router.push('/posts')
-          },
-          onError: (error) => {
-            console.error('Error creating post:', error)
-            toast({
-              title: 'Post Creation Failed',
-              description:
-                error instanceof Error
-                  ? error.message
-                  : 'An unexpected error occurred',
-              variant: 'destructive',
-            })
-            setIsSubmitting(false);
-          },
-        }
-      )
+      console.log('Creating post with data:', postData)
+
+      await createPostMutation.mutateAsync(postData, {
+        onSuccess: () => {
+          console.log('Post created successfully')
+          toast({
+            title: 'Post created successfully!',
+          })
+          // Reset form
+          setTitle('')
+          setDescription('')
+          setIsFileSelected(false)
+          // Redirect to posts list
+          router.push('/posts')
+        },
+        onError: (error) => {
+          console.error('Error creating post:', error)
+          toast({
+            title: 'Post Creation Failed',
+            description:
+              error instanceof Error
+                ? error.message
+                : 'An unexpected error occurred',
+            variant: 'destructive',
+          })
+          setIsSubmitting(false)
+        },
+      })
     } catch (error) {
       console.error('Error creating post:', error)
       toast({
@@ -131,12 +115,12 @@ export function PostForm() {
         description: 'An unexpected error occurred',
         variant: 'destructive',
       })
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
   }
 
   const handleFileSelected = () => {
-    setIsFileSelected(true);
+    setIsFileSelected(true)
   }
 
   return (
@@ -176,10 +160,7 @@ export function PostForm() {
       <Button
         type="submit"
         disabled={
-          isSubmitting || 
-          createPostMutation.isPending || 
-          !title || 
-          !description
+          isSubmitting || createPostMutation.isPending || !title || !description
         }
         className="w-full"
       >
@@ -190,7 +171,3 @@ export function PostForm() {
     </form>
   )
 }
-
-
-
-
