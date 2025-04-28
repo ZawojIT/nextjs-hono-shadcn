@@ -69,3 +69,7 @@ pnpm generate:types
 - [ ] Create example posts
 - [ ] i18n support
 - [ ] Error handling
+- [ ] Mailing
+- [ ] reCAPTCHA
+- [ ] SEO
+- [ ] Stripe
