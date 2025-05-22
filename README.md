@@ -73,3 +73,5 @@ pnpm generate:types
 - [ ] reCAPTCHA
 - [ ] SEO
 - [ ] Stripe
+- [ ] Create 3 different tempaltes [Webiste, Store, SaaS]
+- [ ] Convert to domain driven design
