@@ -1,3 +1,4 @@
+import { AdminOrOwnerAccessGuard } from '@/payload/access-guards/admin-or-owner'
 import type { CollectionConfig } from 'payload'
 
 export const Posts: CollectionConfig = {
@@ -5,13 +6,7 @@ export const Posts: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
   },
-  access: {
-    read: (ctx) => true,
-    // Only for demo purposes
-    create: () => true,
-    update: () => true,
-    delete: () => true,
-  },
+  access: AdminOrOwnerAccessGuard,
   fields: [
     {
       name: 'title',
@@ -29,5 +24,10 @@ export const Posts: CollectionConfig = {
       type: 'upload',
       relationTo: 'media',
     },
+    {
+      name:'owner',
+      type:"relationship",
+      relationTo:"users"
+    }
   ],
 }
