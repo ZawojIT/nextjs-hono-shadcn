@@ -7,7 +7,7 @@ import { Input } from '@/components/elements/input'
 import { Label } from '@/components/elements/label'
 import { useCreatePost } from '@/hooks/posts/posts'
 import { useToast } from '@/hooks/shadcn/use-toast'
-import { ImageUpload, ImageUploadRef } from '@/app/(app)/components/ImageUpload'
+import { ImageUpload, ImageUploadRef } from '@/app/(app)/components/image-upload'
 
 export function PostForm() {
   const router = useRouter()
