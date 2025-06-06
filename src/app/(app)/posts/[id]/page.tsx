@@ -5,7 +5,7 @@ import {
 } from '@tanstack/react-query'
 import { postsQueryKeys } from '@/hooks/posts/posts.keys'
 import { createPostsServerService } from '@/hooks/posts/posts.server'
-import { PostDetail } from '../components/PostDetail'
+import { PostDetail } from '../components/post-detail'
 
 interface PageProps {
   params: {

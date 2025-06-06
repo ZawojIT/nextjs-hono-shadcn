@@ -5,7 +5,7 @@ import {
 } from '@tanstack/react-query'
 import { postsQueryKeys } from '@/hooks/posts/posts.keys'
 import { createPostsServerService } from '@/hooks/posts/posts.server'
-import { PostsList } from './components/PostsList'
+import { PostsList } from './components/posts-list'
 
 export default async function PostsPage() {
   const queryClient = new QueryClient()

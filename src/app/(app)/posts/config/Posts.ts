@@ -22,6 +22,7 @@ export const Posts: CollectionConfig = {
       name: 'description',
       type: 'textarea',
       required: true,
+      localized: true,
     },
     {
       name: 'image',
