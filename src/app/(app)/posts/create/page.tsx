@@ -1,4 +1,3 @@
-import { AppLayout } from '../../components/app-layout'
 import { PostForm } from '../components/post-form'
 
 export default function CreatePostPage() {

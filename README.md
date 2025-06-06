@@ -101,10 +101,12 @@ base64 -i server.crt > server.crt.base64 && base64 -i server.key > server.key.ba
 
 ## Left to do
 
-- [ ] Create example posts
 - [ ] i18n support
 - [ ] Error handling
-- [ ] Mailing
-- [ ] reCAPTCHA
-- [ ] SEO
-- [ ] Stripe
+- [ ] Mailing - PRD that AI will add it
+- [ ] reCAPTCHA - PRD that AI will add it
+- [ ] SEO - Plugin + Implemnetaion
+- [ ] Stripe - PRD that AI will add it
+- [ ] S3 mock
+- [ ] How to deploy on heroku
+
