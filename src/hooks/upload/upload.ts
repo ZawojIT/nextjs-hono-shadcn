@@ -28,7 +28,6 @@ export const useUploadMedia = () => {
       }
 
       const responseData = await response.json()
-      console.log('Media upload response:', responseData);
       
       // Handle both direct response and doc-wrapped response
       const mediaData = responseData.doc || responseData;

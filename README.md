@@ -7,23 +7,47 @@ This project combines the following technologies:
 - [shadcn/ui](https://ui.shadcn.com/) - UI component library
 - [PayloadCMS](https://payloadcms.com/) - Headless CMS with PostgreSQL database
 
+## Prerequisites
+
+- Node.js 18+ 
+- PostgreSQL
+- OpenSSL (for SSL certificate generation)
+
 ## Getting Started
 
-First, set up your environment variables:
+### Environment Setup
 
+1. Copy the example environment file:
 ```bash
-# Copy the example .env file
 cp .env.example .env
 ```
 
-Make sure to update your PostgreSQL connection string in `.env`:
-
-```
+2. Update your PostgreSQL connection string and other environment variables in `.env`:
+```env
 DATABASE_URI=postgres://postgres:postgres@127.0.0.1:5432/postgress
 PAYLOAD_SECRET=your-secret-key
 ```
 
-Then, run the development server:
+### SSL Certificate Setup
+
+1. Generate a self-signed SSL certificate:
+```bash
+cd ssl && openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout server.key -out server.crt -subj "/CN=localhost" -addext "subjectAltName = DNS:localhost,IP:127.0.0.1"
+```
+
+2. Convert the certificate and key to base64 format:
+```bash
+base64 -i server.crt > server.crt.base64 && base64 -i server.key > server.key.base64
+```
+
+3. Trust the certificate (macOS):
+   - Double-click `server.crt` in Finder
+   - Open Keychain Access
+   - Find the certificate and set it to "Always Trust"
+
+### Development
+
+Start the development server:
 
 ```bash
 npm run dev
@@ -57,6 +81,17 @@ yarn generate:types
 pnpm generate:types
 ```
 
+## SSL
+
+```bash
+cd ssl && openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout server.key -out server.crt -subj "/CN=localhost" -addext "subjectAltName = DNS:localhost,IP:127.0.0.1"
+```
+The `server.key` and `server.crt` files will be used to generate a self-signed SSL certificate.
+Convert the `server.key` to a base64 string:
+```bash
+base64 -i server.crt > server.crt.base64 && base64 -i server.key > server.key.base64
+```
+
 ## Learn More
 
 - [Next.js Documentation](https://nextjs.org/docs)
@@ -66,12 +101,13 @@ pnpm generate:types
 
 ## Left to do
 
-- [ ] Create example posts
 - [ ] i18n support
 - [ ] Error handling
-- [ ] Mailing
-- [ ] reCAPTCHA
-- [ ] SEO
-- [ ] Stripe
+- [ ] Mailing - PRD that AI will add it
+- [ ] reCAPTCHA - PRD that AI will add it
+- [ ] SEO - Plugin + Implemnetaion
+- [ ] Stripe - PRD that AI will add it
+- [ ] S3 mock
+- [ ] How to deploy on heroku
 - [ ] Create 3 different tempaltes [Webiste, Store, SaaS]
-- [ ] Convert to domain driven design
+

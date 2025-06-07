@@ -1,5 +1,4 @@
-import { AppLayout } from '../../components/AppLayout'
-import { PostForm } from '../components/PostForm'
+import { PostForm } from '../components/post-form'
 
 export default function CreatePostPage() {
   return (
